@@ -1,4 +1,4 @@
-﻿using JiraFinalApp201.Models.Database;
+using JiraFinalApp201.Models.Database;
 using JiraFinalApp201.Models.Authentication;
 using JiraFinalApp201.Models.Database;
 using JiraFinalApp201.Models.Tasks;
@@ -131,11 +131,10 @@ namespace JiraFinalApp201.Controllers
                 _context.Users.Add(user);
                 _context.SaveChanges();
 
-                // Auto-login after registration
-                HttpContext.Session.SetString("UserId", user.Id.ToString());
-                HttpContext.Session.SetString("Email", user.Email);
 
-                return RedirectToAction("Index", "Board");
+                // Redirect to login page with success message
+                TempData["RegistrationSuccess"] = true;
+                return RedirectToAction("Login");
             }
             catch (Exception)
             {

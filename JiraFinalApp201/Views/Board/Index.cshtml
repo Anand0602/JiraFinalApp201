@@ -1,4 +1,4 @@
-﻿@model JiraFinalApp201.ViewModels.BoardViewModel
+@model JiraFinalApp201.ViewModels.BoardViewModel
 
 @{
     ViewData["Title"] = "Developer Boards";
@@ -139,6 +139,10 @@
         var unassignedTodoCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo);
         var unassignedInProgressCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress);
         var unassignedDoneCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done);
+        
+        var unassignedTodoTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo).ToList();
+        var unassignedInProgressTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress).ToList();
+        var unassignedDoneTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done).ToList();
     }
 
     <!-- Tabs -->
@@ -208,21 +212,16 @@
                         <div id="collapse-@user.Id" class="accordion-collapse collapse" aria-labelledby="heading-@user.Id" data-bs-parent="#taskBoardAccordion">
                             <div class="accordion-body p-0">
                                 <div class="row">
-                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 0, todoTasks))
-                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 1, inProgressTasks))
-                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 2, doneTasks))
+                                    @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 0, todoTasks))
+                                    @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 1, inProgressTasks))
+                                    @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 2, doneTasks))
                                 </div>
                             </div>
                         </div>
                     </div>
                 }
 
-                <!-- Unassigned Tasks -->
-                @{
-                    var unassignedTodoTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo).ToList();
-                    var unassignedInProgressTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress).ToList();
-                    var unassignedDoneTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done).ToList();
-                }
+                <!-- Unassigned Tasks Section -->
 
                 <div class="accordion-item mb-2">
                     <h2 class="accordion-header" id="heading-unassigned">
@@ -245,9 +244,9 @@
                     <div id="collapse-unassigned" class="accordion-collapse collapse" aria-labelledby="heading-unassigned" data-bs-parent="#taskBoardAccordion">
                         <div class="accordion-body p-0">
                             <div class="row">
-                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 0, unassignedTodoTasks))
-                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 1, unassignedInProgressTasks))
-                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 2, unassignedDoneTasks))
+                                @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 0, unassignedTodoTasks))
+                                @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 1, unassignedInProgressTasks))
+                                @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskColumn.cshtml", (" ", "col-md-4", 2, unassignedDoneTasks))
                             </div>
                         </div>
                     </div>
@@ -258,10 +257,10 @@
 </div>
 
 <!-- Modals -->
-@await Html.PartialAsync("~/Views/Shared/Partials/_ModalLayout.cshtml",
+@await Html.PartialAsync("~/Views/Shared/PartialViews/ModalLayout.cshtml",
         (Title: "Task Details", SaveButtonText: "", SaveButtonId: "", ShowFooter: false))
 
-@await Html.PartialAsync("~/Views/Shared/Partials/_ModalLayout.cshtml",
+@await Html.PartialAsync("~/Views/Shared/PartialViews/ModalLayout.cshtml",
         (Title: "Create Task", SaveButtonText: "Save Task", SaveButtonId: "saveTaskBtn", ShowFooter: true))
 
 <!-- Status Update Toast -->

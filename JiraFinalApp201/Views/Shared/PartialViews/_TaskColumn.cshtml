@@ -1,0 +1,22 @@
+@using JiraFinalApp201.Models.Tasks
+@using JiraFinalApp201.ViewModels
+@model (string Title, string ColumnCss, int Status, List<TaskViewModel> Tasks)
+
+<div class="@Model.ColumnCss">
+    <div class="p-2">
+        <div class="task-container" data-status="@Model.Status">
+            <h5 class="mb-3">@Model.Title</h5>
+            @if (Model.Tasks != null && Model.Tasks.Any())
+            {
+                foreach (var task in Model.Tasks)
+                {
+                    @await Html.PartialAsync("~/Views/Shared/PartialViews/_TaskCard.cshtml", task)
+                }
+            }
+            else
+            {
+                <div class="text-muted">No tasks</div>
+            }
+        </div>
+    </div>
+</div>

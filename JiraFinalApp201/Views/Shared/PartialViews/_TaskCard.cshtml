@@ -1,4 +1,4 @@
-﻿@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
+@model JiraFinalApp201.ViewModels.TaskViewModel
 
 <div class="card mb-2 task-card view-task-details" data-task-id="@Model.Id" draggable="true">
     <div class="card-body p-2">
@@ -19,12 +19,12 @@
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">@Model.WorkType</small>
             <div class="d-flex align-items-center">
-                @if (Model.Assignee != null)
+                @if (!string.IsNullOrEmpty(Model.AssigneeName))
                 {
                     <div class="avatar bg-primary text-white me-1" style="width: 24px; height: 24px; font-size: 12px;">
-                        @Model.Assignee.Username.Substring(0, 1).ToUpper()
+                        @Model.AssigneeName.Substring(0, 1).ToUpper()
                     </div>
-                    <small>@Model.Assignee.Username</small>
+                    <small>@Model.AssigneeName</small>
                 }
                 else
                 {
