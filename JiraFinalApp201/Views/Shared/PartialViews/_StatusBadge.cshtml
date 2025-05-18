@@ -1,0 +1,14 @@
+﻿@model (JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum Status, string AdditionalClasses)
+
+@{
+    var badgeClass = Model.Status switch
+    {
+        JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo => "bg-primary",
+        JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress => "bg-warning",
+        JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge @badgeClass @Model.AdditionalClasses">
+    @Model.Status.ToString()
+</span>

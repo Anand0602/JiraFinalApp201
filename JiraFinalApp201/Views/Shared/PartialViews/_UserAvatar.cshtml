@@ -1,0 +1,4 @@
+﻿@model (string Username, string AdditionalClasses)
+<div class="avatar bg-primary text-white @Model.AdditionalClasses">
+    @(string.IsNullOrEmpty(Model.Username) ? "U" : Model.Username.Substring(0, 1).ToUpper())
+</div>

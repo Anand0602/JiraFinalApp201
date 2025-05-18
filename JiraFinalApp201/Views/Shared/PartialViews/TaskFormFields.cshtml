@@ -1,0 +1,118 @@
+﻿@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="form-group">
+            <label for="Title" class="form-label">Title *</label>
+            <input type="text" class="form-control" id="Title" name="Title" value="@Model?.Title" required>
+            <div class="invalid-feedback">Please enter a title.</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="form-group">
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="Description" rows="4">@Model?.Description</textarea>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="WorkType" class="form-label">Work Type</label>
+            <select class="form-select" id="WorkType" name="WorkType">
+                @foreach (var workType in Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.WorkType)))
+                {
+                    var isSelected = Model != null && Model.WorkType.ToString() == workType.ToString();
+                    <option value="@workType" @@(isSelected ? "selected" : "")>@workType</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="Priority" class="form-label">Priority</label>
+            <select class="form-select" id="Priority" name="Priority">
+                @foreach (var priority in Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.Priority)))
+                {
+                    var isSelected = Model != null && Model.Priority.ToString() == priority.ToString();
+                    <option value="@priority" @@(isSelected ? "selected" : "")>@priority</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="Status" class="form-label">Status</label>
+            <select class="form-select" id="Status" name="Status">
+                @foreach (var status in Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum)))
+                {
+                    var isSelected = Model != null && Model.Status.ToString() == status.ToString();
+                    <option value="@status" @@(isSelected ? "selected" : "")>@status</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="ProjectId" class="form-label">Project *</label>
+            <select class="form-select" id="ProjectId" name="ProjectId" required>
+                <option value="">Select a project</option>
+                @foreach (var project in ViewBag.Projects ?? new List<JiraFinalApp201.Models.Projects.Project>())
+                {
+                    var isSelected = Model != null && Model.ProjectId == project.Id;
+                    <option value="@project.Id" @@(isSelected ? "selected" : "")>@project.Name</option>
+                }
+            </select>
+            <div class="invalid-feedback">Please select a project.</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="CONId" class="form-label">CON ID *</label>
+            <input type="text" class="form-control" id="CONId" name="CONId" value="@Model?.CONId" required>
+            <div class="invalid-feedback">Please enter a CON ID.</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="ReporterId" class="form-label">Reporter</label>
+            <select class="form-select" id="ReporterId" name="ReporterId">
+                <option value="">Select a reporter</option>
+                @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
+                {
+                    var isSelected = Model != null && Model.ReporterId == user.Id;
+                    <option value="@user.Id" @@(isSelected ? "selected" : "")>@user.FullName</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="AssigneeId" class="form-label">Assignee</label>
+            <select class="form-select" id="AssigneeId" name="AssigneeId">
+                <option value="">Unassigned</option>
+                @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
+                {
+                    var isSelected = Model != null && Model.AssigneeId == user.Id;
+                    <option value="@user.Id" @@(isSelected ? "selected" : "")>@user.FullName</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="form-group mb-3">
+    <label for="Attachment" class="form-label">Attachment</label>
+    <input type="file" class="form-control" id="Attachment" name="Attachment" />
+    <div class="form-text">Upload a file related to this task (max 10MB)</div>
+</div>

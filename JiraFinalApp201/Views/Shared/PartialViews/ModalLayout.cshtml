@@ -1,0 +1,26 @@
+﻿@* Views/Shared/Partials/_ModalLayout.cshtml *@
+@* Usage: Pass in the title and modal body as RenderSections or as parameters *@
+@model JiraFinalApp201.Models.Tasks.Taskitems 
+
+<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskModalLabel">
+                    @ViewBag.ModalTitle ?? "Task Details"
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @RenderBody()
+            </div>
+            <div class="modal-footer">
+                @if (ViewBag.ShowSaveButton ?? false)
+                {
+                    <button type="submit" class="btn btn-primary" form="taskForm">Save</button>
+                }
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

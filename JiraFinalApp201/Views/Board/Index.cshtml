@@ -1,0 +1,542 @@
+﻿@model JiraFinalApp201.ViewModels.BoardViewModel
+
+@{
+    ViewData["Title"] = "Developer Boards";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.css" />
+
+<style>
+    /* Board styles */
+    .board-column {
+        min-height: 300px;
+    }
+
+    .board-column-header {
+        padding: 10px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .disabled-task {
+        opacity: 0.6;
+        cursor: not-allowed !important;
+    }
+
+    .task-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid #3498db;
+        position: relative;
+    }
+
+        .task-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+    .task-container {
+        min-height: 100px;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+
+        .task-container.drag-over {
+            background-color: #e9ecef;
+            border: 2px dashed #6c757d;
+        }
+
+    .avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-weight: bold;
+    }
+
+    .user-section {
+        margin-bottom: 15px;
+        border: 1px solid #eee;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 10px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .tasks-container {
+        padding: 10px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+    }
+
+    .status-todo {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .status-progress {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    .status-done {
+        background-color: #198754;
+        color: white;
+    }
+
+    .column-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        border-radius: 10px;
+    }
+
+    .bi-chevron-down {
+        transition: transform 0.3s;
+    }
+
+    .collapsed .bi-chevron-down {
+        transform: rotate(-90deg);
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h2 class="mb-0">Dev board</h2>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button id="createTaskBtn" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Create Task
+            </button>
+        </div>
+    </div>
+
+    <!-- Unassigned Tasks -->
+    @{
+        var unassignedTasks = Model.Tasks.Where(t => t.AssigneeId == null).ToList();
+        var unassignedTodoCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo);
+        var unassignedInProgressCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress);
+        var unassignedDoneCount = unassignedTasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done);
+    }
+
+    <!-- Tabs -->
+    <div class="mb-3">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#"><i class="bi bi-kanban"></i> Tasks</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Task Board -->
+    <div class="row mb-3">
+        <!-- Column Headers -->
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <h5 class="mb-0 text-uppercase">SELECTED FOR DEVELOPMENT <span class="badge bg-secondary">@Model.Tasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo)</span></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <h5 class="mb-0 text-uppercase">IN DEVELOPMENT <span class="badge bg-secondary">@Model.Tasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress)</span></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <h5 class="mb-0 text-uppercase">COMPLETED <span class="badge bg-secondary">@Model.Tasks.Count(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done)</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Board Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="accordion" id="taskBoardAccordion">
+                @foreach (var user in Model.UserTasksViewModel.Users)
+                {
+                    var userTasks = Model.Tasks.Where(t => t.AssigneeId == user.Id).ToList();
+                    var todoTasks = userTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo).ToList();
+                    var inProgressTasks = userTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress).ToList();
+                    var doneTasks = userTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done).ToList();
+
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="heading-@user.Id">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@user.Id" aria-expanded="false" aria-controls="collapse-@user.Id">
+                                <div class="d-flex align-items-center w-100">
+                                    <div class="avatar bg-primary text-white me-3">
+                                        @user.Username.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">@user.Username</span>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <span class="badge bg-primary me-2">@todoTasks.Count() to do</span>
+                                        <span class="badge bg-warning me-2">@inProgressTasks.Count() in progress</span>
+                                        <span class="badge bg-success">@doneTasks.Count() done</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse-@user.Id" class="accordion-collapse collapse" aria-labelledby="heading-@user.Id" data-bs-parent="#taskBoardAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="row">
+                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 0, todoTasks))
+                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 1, inProgressTasks))
+                                    @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 2, doneTasks))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Unassigned Tasks -->
+                @{
+                    var unassignedTodoTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.ToDo).ToList();
+                    var unassignedInProgressTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.InProgress).ToList();
+                    var unassignedDoneTasks = unassignedTasks.Where(t => t.Status == JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum.Done).ToList();
+                }
+
+                <div class="accordion-item mb-2">
+                    <h2 class="accordion-header" id="heading-unassigned">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-unassigned" aria-expanded="false" aria-controls="collapse-unassigned">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="avatar bg-secondary text-white me-3">
+                                    U
+                                </div>
+                                <div>
+                                    <span class="fw-bold">Unassigned Tasks</span>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-primary me-2">@unassignedTodoTasks.Count() to do</span>
+                                    <span class="badge bg-warning me-2">@unassignedInProgressTasks.Count() in progress</span>
+                                    <span class="badge bg-success">@unassignedDoneTasks.Count() done</span>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse-unassigned" class="accordion-collapse collapse" aria-labelledby="heading-unassigned" data-bs-parent="#taskBoardAccordion">
+                        <div class="accordion-body p-0">
+                            <div class="row">
+                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 0, unassignedTodoTasks))
+                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 1, unassignedInProgressTasks))
+                                @await Html.PartialAsync("~/Views/Shared/Partials/_TaskColumn.cshtml", (" ", "col-md-4", 2, unassignedDoneTasks))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+@await Html.PartialAsync("~/Views/Shared/Partials/_ModalLayout.cshtml",
+        (Title: "Task Details", SaveButtonText: "", SaveButtonId: "", ShowFooter: false))
+
+@await Html.PartialAsync("~/Views/Shared/Partials/_ModalLayout.cshtml",
+        (Title: "Create Task", SaveButtonText: "Save Task", SaveButtonId: "saveTaskBtn", ShowFooter: true))
+
+<!-- Status Update Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+    <div id="statusAlert" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Task status updated successfully!
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+    <script>
+        // Update badge counts dynamically
+        function updateBadgeCounts() {
+            var todoCount = document.querySelectorAll('.task-container[data-status="0"] .task-card').length;
+            var inProgressCount = document.querySelectorAll('.task-container[data-status="1"] .task-card').length;
+            var doneCount = document.querySelectorAll('.task-container[data-status="2"] .task-card').length;
+
+            // Update the badges in the column headers
+            var headerBadges = document.querySelectorAll('.row.mb-3 .badge.bg-secondary');
+            if (headerBadges.length >= 3) {
+                headerBadges[0].textContent = todoCount;
+                headerBadges[1].textContent = inProgressCount;
+                headerBadges[2].textContent = doneCount;
+            }
+
+            document.querySelectorAll('.task-container').forEach(container => {
+                const status = container.getAttribute('data-status');
+                const taskCount = container.querySelectorAll('.task-card').length;
+
+                let badgeSelector = '';
+
+                // Find matching badge span based on status
+                switch (parseInt(status)) {
+                    case 0:
+                        badgeSelector = '.badge.bg-primary';
+                        break;
+                    case 1:
+                        badgeSelector = '.badge.bg-warning';
+                        break;
+                    case 2:
+                        badgeSelector = '.badge.bg-success';
+                        break;
+                }
+
+                // Update the count
+                const badge = container.closest('.accordion-body').querySelector(badgeSelector);
+                if (badge) {
+                    badge.textContent = `${taskCount} ${badge.textContent.split(' ').slice(1).join(' ')}`;
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // Initialize drag and drop functionality
+            initDragAndDrop();
+
+            // Disable drag for tasks in Completed (Blocked) column on page load
+            document.querySelectorAll('.task-container[data-status="2"] .task-card').forEach(card => {
+                card.setAttribute('draggable', 'false');
+                card.classList.add('disabled-task');
+            });
+
+            function initDragAndDrop() {
+                const draggableCards = document.querySelectorAll('.task-card[draggable="true"]');
+                const dropContainers = document.querySelectorAll('.task-container');
+
+                draggableCards.forEach(card => {
+                    // Add click handler for task details
+                    card.addEventListener('click', function(e) {
+                        if (!this.classList.contains('dragging')) {
+                            const taskId = this.dataset.taskId;
+                            showTaskDetails(taskId);
+                        }
+                    });
+
+                    // Add drag handlers
+                    card.addEventListener('dragstart', function(e) {
+                        this.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', this.dataset.taskId);
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+
+                    card.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
+                    });
+                });
+
+                dropContainers.forEach(container => {
+                    container.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        this.classList.add('drag-over');
+                    });
+
+                    container.addEventListener('dragleave', function() {
+                        this.classList.remove('drag-over');
+                    });
+
+                    container.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('drag-over');
+
+                        const taskId = e.dataTransfer.getData('text/plain');
+                        const newStatus = this.dataset.status;
+                        const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+
+                        if (taskCard && newStatus !== undefined) {
+                            updateTaskStatus(taskId, newStatus);
+                            this.appendChild(taskCard);
+
+                            // Disable drag for tasks in Completed (status 2)
+                            if (newStatus === "2") {
+                                taskCard.setAttribute('draggable', 'false');
+                                taskCard.classList.add('disabled-task');
+                            } else {
+                                taskCard.setAttribute('draggable', 'true');
+                                taskCard.classList.remove('disabled-task');
+                            }
+
+                            // Update the column counts
+                            updateBadgeCounts();
+                        }
+                    });
+                });
+            }
+
+            // Function to show task details
+            function showTaskDetails(taskId) {
+                $('#taskDetailsContent').html('<div class="d-flex justify-content-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+                $('#taskDetailsModal').modal('show');
+
+                $.ajax({
+                    url: '@Url.Action("GetTaskDetails", "Task")',
+                    type: 'GET',
+                    data: { taskId: taskId },
+                    success: function(result) {
+                        $('#taskDetailsContent').html(result);
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to load task details'
+                        });
+                        $('#taskDetailsModal').modal('hide');
+                    }
+                });
+            }
+
+            // Function to update task status
+            function updateTaskStatus(taskId, newStatus) {
+                $.ajax({
+                    url: '@(Url.Action("ChangeTaskStatus", "Task"))',
+                    type: 'POST',
+                    data: { taskId: taskId, newStatus: newStatus },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success toast
+                            $('#statusAlert').toast('show');
+                        } else {
+                            // Show error message
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Failed to update task status'
+                            }).then(function() {
+                                // Reload the page to restore original state
+                                location.reload();
+                            });
+                        }
+                    },
+                    error: function() {
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while updating the task status'
+                        }).then(function() {
+                            // Reload the page to restore original state
+                            location.reload();
+                        });
+                    }
+                });
+            }
+
+            // Handle Create Task button click
+            $('#createTaskBtn').on('click', function(e) {
+                e.preventDefault();
+
+                // Show loading state
+                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+
+                $.ajax({
+                    url: '@(Url.Action("Create", "Task"))',
+                    type: 'GET',
+                    success: function(result) {
+                        // Populate modal content and show it
+                        $('#createTaskContent').html(result);
+                        $('#createTaskModal').modal('show');
+
+                        // Reset button state
+                        $('#createTaskBtn').prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Create Task');
+
+                        // Remove any existing click handlers to prevent duplicates
+                        $(document).off('click', '#saveTaskBtn');
+
+                        // Add click handler for the save button inside the modal
+                        $(document).on('click', '#saveTaskBtn', function() {
+                            // Create a FormData object to handle file uploads
+                            var formData = new FormData($('#createTaskForm')[0]);
+
+                            // Show loading state
+                            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+
+                            $.ajax({
+                                url: '@(Url.Action("Create", "Task"))',
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Close modal
+                                        $('#createTaskModal').modal('hide');
+
+                                        // Show success message with SweetAlert
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Success',
+                                            text: 'Task created successfully!',
+                                            confirmButtonColor: '#3085d6'
+                                        }).then((result) => {
+                                            // Reload the page
+                                            window.location.href = '@(Url.Action("Index", "Board"))';
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: response.message,
+                                            confirmButtonColor: '#3085d6'
+                                        });
+                                        $('#saveTaskBtn').prop('disabled', false).text('Save Task');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error saving task:', error);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'An error occurred while saving the task: ' + error,
+                                        confirmButtonColor: '#3085d6'
+                                    });
+                                    $('#saveTaskBtn').prop('disabled', false).text('Save Task');
+                                }
+                            });
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error loading create task form. Please try again.',
+                            confirmButtonColor: '#3085d6'
+                        });
+                        $('#createTaskBtn').prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Create Task');
+                    }
+                });
+            });
+        });
+    </script>
+}

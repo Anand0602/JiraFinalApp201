@@ -1,0 +1,238 @@
+﻿@using static JiraFinalApp201.Models.Tasks.Taskitems
+@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
+ 
+
+@{
+    ViewBag.Title = "Task Details";
+
+    var statusClass = Model.Status switch
+    {
+        TaskStatusEnum.ToDo => "bg-secondary",
+        TaskStatusEnum.InProgress => "bg-info text-dark",
+        TaskStatusEnum.Done => "bg-success",
+        _ => "bg-light"
+    };
+
+    var priorityClass = Model.Priority switch
+    {
+        Priority.Low => "badge bg-success",
+        Priority.Medium => "badge bg-warning text-dark",
+        Priority.High => "badge bg-danger",
+        _ => "badge bg-secondary"
+    };
+
+    var workTypeOptions = Enum.GetValues(typeof(WorkType)).Cast<WorkType>();
+    var priorityOptions = Enum.GetValues(typeof(Priority)).Cast<Priority>();
+    var statusOptions = Enum.GetValues(typeof(TaskStatusEnum)).Cast<TaskStatusEnum>();
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .editable-field .display-view {
+        padding: 3px;
+        border-radius: 3px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .editable-field .display-view:hover {
+        background-color: rgba(9, 30, 66, 0.04);
+        border-color: rgba(9, 30, 66, 0.1);
+        cursor: pointer;
+    }
+
+    .editable-field h4, .editable-field p {
+        margin-bottom: 0;
+    }
+
+    .action-buttons {
+        margin-top: 8px;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+                <span class="me-2 text-muted"><i class="bi bi-hash"></i> @Model.CONId</span>
+                <span class="badge @statusClass ms-2">@Model.Status</span>
+            </div>
+
+            <!-- Editable Title -->
+            <div class="editable-field mb-3" data-field="Title" data-id="@Model.Id">
+                <div class="display-view">
+                    <h4 class="fw-bold">@Model.Title</h4>
+                </div>
+                <div class="edit-view" style="display:none;">
+                    <input type="text" class="form-control" value="@Model.Title">
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check"></i></button>
+                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable Description -->
+            <div class="editable-field mb-3" data-field="Description" data-id="@Model.Id">
+                <div class="display-view">
+                    <p>@Model.Description</p>
+                </div>
+                <div class="edit-view" style="display:none;">
+                    <textarea class="form-control" rows="3">@Model.Description</textarea>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check"></i></button>
+                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dropdowns -->
+            <div class="mb-3">
+                <strong>Work Type:</strong>
+                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="WorkType" data-id="@Model.Id">
+                    @foreach (var type in workTypeOptions)
+                    {
+                        <option value="@type" @@(type == Model.WorkType ? "selected" : "")>@type</option>
+                    }
+                </select>
+
+                <strong class="ms-3">Priority:</strong>
+                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="Priority" data-id="@Model.Id">
+                    @foreach (var p in priorityOptions)
+                    {
+                        <option value="@p" @@(p == Model.Priority ? "selected" : "")>@p</option>
+                    }
+                </select>
+
+                <strong class="ms-3">Status:</strong>
+                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="Status" data-id="@Model.Id">
+                    @foreach (var s in statusOptions)
+                    {
+                        <option value="@s" @@(s == Model.Status ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="mb-3">
+                <strong>Created:</strong> @Model.CreatedAt:yyyy-MM-dd
+                @if (Model.CompletionDate.HasValue)
+                {
+                    <span class="ms-3"><strong>Completed:</strong> @Model.CompletionDate:yyyy-MM-dd</span>
+                }
+            </div>
+
+            <!-- Project -->
+            <div class="mb-3">
+                <strong>Project:</strong> @Model.Project?.Name
+            </div>
+
+            <!-- Attachments -->
+            @if (!string.IsNullOrEmpty(Model.AttachmentPath))
+            {
+                <div class="mb-3">
+                    <strong>Attachment:</strong>
+                    <div>
+                        <a href="@Url.Content(Model.AttachmentPath)" target="_blank">
+                            @System.IO.Path.GetFileName(Model.AttachmentPath)
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Reporter:</strong> <span class="badge bg-primary">@Model.Reporter?.Username</span></li>
+                        <li><strong>Assignee:</strong> <span class="badge bg-secondary">@(Model.Assignee?.Username ?? "Unassigned")</span></li>
+                        <li><strong>Task ID:</strong> @Model.Id</li>
+                        <li><strong>CON ID:</strong> @Model.CONId</li>
+                        <li><strong>Created At:</strong> @Model.CreatedAt:yyyy-MM-dd</li>
+                        <li><strong>Completion Date:</strong> @(Model.CompletionDate?.ToString("yyyy-MM-dd") ?? "N/A")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            $('.editable-field .display-view').click(function () {
+                const container = $(this).closest('.editable-field');
+                container.find('.display-view').hide();
+                container.find('.edit-view').show().find('input, textarea').focus();
+            });
+
+            $('.cancel-edit').click(function () {
+                const container = $(this).closest('.editable-field');
+                container.find('.edit-view').hide();
+                container.find('.display-view').show();
+            });
+
+            $('.save-edit').click(function () {
+                const container = $(this).closest('.editable-field');
+                const field = container.data('field');
+                const id = container.data('id');
+                const value = container.find('input, textarea').val();
+
+                $.ajax({
+                    url: '/Task/UpdateField',
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token },
+                    data: { id, field, value },
+                    success: function (response) {
+                        if (response.success) {
+                            container.find('.edit-view').hide();
+                            container.find('.display-view').show();
+                            if (field === 'Title') {
+                                container.find('h4').text(value);
+                            } else {
+                                container.find('p').text(value);
+                            }
+                        } else {
+                            alert('Failed to update: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while updating the field.');
+                    }
+                });
+            });
+
+            $('.auto-save-select').change(function () {
+                const field = $(this).data('field');
+                const id = $(this).data('id');
+                const value = $(this).val();
+
+                $.ajax({
+                    url: '/Task/UpdateField',
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token },
+                    data: { id, field, value },
+                    success: function (response) {
+                        if (!response.success) {
+                            alert('Failed to update: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while updating the field.');
+                    }
+                });
+            });
+
+            $('input, textarea').keypress(function (e) {
+                if (e.which === 13 && !e.shiftKey) {
+                    $(this).closest('.editable-field').find('.save-edit').click();
+                }
+            });
+        });
+    </script>
+}

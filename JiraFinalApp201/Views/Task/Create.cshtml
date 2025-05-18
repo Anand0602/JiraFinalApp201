@@ -1,0 +1,97 @@
+﻿@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
+
+@{
+    ViewBag.Title = "Create Task";
+
+    var statusOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum))
+                            .Cast<JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum>();
+
+    var workTypeOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.WorkType))
+                              .Cast<JiraFinalApp201.Models.Tasks.Taskitems.WorkType>();
+
+    var priorityOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.Priority))
+                               .Cast<JiraFinalApp201.Models.Tasks.Taskitems.Priority>();
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h4 class="fw-bold mb-3">Create New Task</h4>
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="WorkType" class="form-label"></label>
+                    <select asp-for="WorkType" class="form-select">
+                        @foreach (var type in workTypeOptions)
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Priority" class="form-label"></label>
+                    <select asp-for="Priority" class="form-select">
+                        @foreach (var p in priorityOptions)
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ProjectId" class="form-label"></label>
+                    <input asp-for="ProjectId" class="form-control" />
+                    <span asp-validation-for="ProjectId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ReporterId" class="form-label"></label>
+                    <input asp-for="ReporterId" class="form-control" />
+                    <span asp-validation-for="ReporterId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AssigneeId" class="form-label"></label>
+                    <input asp-for="AssigneeId" class="form-control" />
+                    <span asp-validation-for="AssigneeId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CONId" class="form-label"></label>
+                    <input asp-for="CONId" class="form-control" />
+                    <span asp-validation-for="CONId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="AttachmentPath" class="form-label">Attachment</label>
+                    <input type="file" name="Attachment" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="alert alert-info">
+                <strong>Tip:</strong> Fill out all required fields and optionally attach a document.
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
