@@ -122,14 +122,30 @@
 </style>
 
 <div class="container-fluid">
+    @if (ViewBag.TaskCreated != null && (bool)ViewBag.TaskCreated)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+            <strong>Success!</strong> Task "@ViewBag.TaskTitle" was created successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["TaskError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <strong>Error!</strong> @TempData["TaskError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
     <div class="row mb-3">
         <div class="col-md-6">
             <h2 class="mb-0">Dev board</h2>
         </div>
         <div class="d-flex justify-content-end">
-            <button id="createTaskBtn" class="btn btn-primary">
+            <a href="#" class="btn btn-primary" id="createTaskBtn">
                 <i class="bi bi-plus-circle me-1"></i>Create Task
-            </button>
+            </a>
         </div>
     </div>
 
@@ -320,6 +336,23 @@
             });
         }
 
+        $(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('created') === '1') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Project created successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                // Remove the query parameter from the URL after showing the alert
+                if (window.history.replaceState) {
+                    const url = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, url);
+                }
+            }
+        });
+
         $(document).ready(function() {
             // Initialize drag and drop functionality
             initDragAndDrop();
@@ -395,25 +428,8 @@
 
             // Function to show task details
             function showTaskDetails(taskId) {
-                $('#taskDetailsContent').html('<div class="d-flex justify-content-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
-                $('#taskDetailsModal').modal('show');
-
-                $.ajax({
-                    url: '@Url.Action("GetTaskDetails", "Task")',
-                    type: 'GET',
-                    data: { taskId: taskId },
-                    success: function(result) {
-                        $('#taskDetailsContent').html(result);
-                    },
-                    error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to load task details'
-                        });
-                        $('#taskDetailsModal').modal('hide');
-                    }
-                });
+                // Redirect to the Task/Details page
+                window.location.href = '@Url.Action("Details", "Task")/' + taskId;
             }
 
             // Function to update task status
@@ -459,82 +475,11 @@
                 // Show loading state
                 $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
 
-                $.ajax({
-                    url: '@(Url.Action("Create", "Task"))',
-                    type: 'GET',
-                    success: function(result) {
-                        // Populate modal content and show it
-                        $('#createTaskContent').html(result);
-                        $('#createTaskModal').modal('show');
-
-                        // Reset button state
-                        $('#createTaskBtn').prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Create Task');
-
-                        // Remove any existing click handlers to prevent duplicates
-                        $(document).off('click', '#saveTaskBtn');
-
-                        // Add click handler for the save button inside the modal
-                        $(document).on('click', '#saveTaskBtn', function() {
-                            // Create a FormData object to handle file uploads
-                            var formData = new FormData($('#createTaskForm')[0]);
-
-                            // Show loading state
-                            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
-
-                            $.ajax({
-                                url: '@(Url.Action("Create", "Task"))',
-                                type: 'POST',
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                success: function(response) {
-                                    if (response.success) {
-                                        // Close modal
-                                        $('#createTaskModal').modal('hide');
-
-                                        // Show success message with SweetAlert
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: 'Success',
-                                            text: 'Task created successfully!',
-                                            confirmButtonColor: '#3085d6'
-                                        }).then((result) => {
-                                            // Reload the page
-                                            window.location.href = '@(Url.Action("Index", "Board"))';
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: 'Error',
-                                            text: response.message,
-                                            confirmButtonColor: '#3085d6'
-                                        });
-                                        $('#saveTaskBtn').prop('disabled', false).text('Save Task');
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Error saving task:', error);
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'An error occurred while saving the task: ' + error,
-                                        confirmButtonColor: '#3085d6'
-                                    });
-                                    $('#saveTaskBtn').prop('disabled', false).text('Save Task');
-                                }
-                            });
-                        });
-                    },
-                    error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Error loading create task form. Please try again.',
-                            confirmButtonColor: '#3085d6'
-                        });
-                        $('#createTaskBtn').prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Create Task');
-                    }
-                });
+                // Get the first available project ID or use a default
+                var projectId = @(Model.UserTasksViewModel.Projects.Any() ? Model.UserTasksViewModel.Projects.First().Id : 0);
+                
+                // Redirect to the Task/Create page with the project ID
+                window.location.href = '@(Url.Action("Create", "Task"))' + '?projectId=' + projectId;
             });
         });
     </script>

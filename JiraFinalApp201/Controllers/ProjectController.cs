@@ -37,7 +37,8 @@ namespace JiraFinalApp201.Controllers
                 project.CreatedDate = DateTime.Now;
                 _context.Add(project);
                 _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Board", new { created = 1 });
+
             }
             return View(project);
         }

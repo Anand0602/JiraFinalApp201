@@ -1,92 +1,120 @@
-﻿@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
+@using static JiraFinalApp201.Models.Tasks.Taskitems
+@model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
 
 @{
     ViewBag.Title = "Create Task";
-
-    var statusOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum))
-                            .Cast<JiraFinalApp201.Models.Tasks.Taskitems.TaskStatusEnum>();
-
-    var workTypeOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.WorkType))
-                              .Cast<JiraFinalApp201.Models.Tasks.Taskitems.WorkType>();
-
-    var priorityOptions = Enum.GetValues(typeof(JiraFinalApp201.Models.Tasks.Taskitems.Priority))
-                               .Cast<JiraFinalApp201.Models.Tasks.Taskitems.Priority>();
+    
+    var workTypeOptions = Enum.GetValues(typeof(WorkType)).Cast<WorkType>();
+    var priorityOptions = Enum.GetValues(typeof(Priority)).Cast<Priority>();
+    var statusOptions = Enum.GetValues(typeof(TaskStatusEnum)).Cast<TaskStatusEnum>();
 }
 
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-8">
-            <h4 class="fw-bold mb-3">Create New Task</h4>
-            <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div class="d-flex align-items-center mb-3">
+                <h4 class="fw-bold">Create New Task</h4>
+                <span class="badge bg-secondary ms-3">New</span>
+            </div>
+
+            <form asp-controller="Task" asp-action="Create" method="post" enctype="multipart/form-data" id="taskForm">
+                <input type="hidden" asp-for="ProjectId" value="@Model.ProjectId" />
+                <input type="hidden" asp-for="ReporterId" value="@Model.ReporterId" />
+                
                 <div class="mb-3">
-                    <label asp-for="Title" class="form-label"></label>
-                    <input asp-for="Title" class="form-control" />
+                    <label asp-for="Title" class="form-label fw-bold">Title *</label>
+                    <input asp-for="Title" class="form-control" required />
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control"></textarea>
+                    <label asp-for="Description" class="form-label fw-bold">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
+                <!-- Dropdowns in a row -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="WorkType" class="form-label fw-bold">Work Type</label>
+                        <select asp-for="WorkType" class="form-select">
+                            @foreach (var type in workTypeOptions)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Priority" class="form-label fw-bold">Priority</label>
+                        <select asp-for="Priority" class="form-select">
+                            @foreach (var p in priorityOptions)
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Status" class="form-label fw-bold">Status</label>
+                        <select asp-for="Status" class="form-select">
+                            @foreach (var s in statusOptions)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label asp-for="WorkType" class="form-label"></label>
-                    <select asp-for="WorkType" class="form-select">
-                        @foreach (var type in workTypeOptions)
+                    <label asp-for="AssigneeId" class="form-label fw-bold">Assignee</label>
+                    <select asp-for="AssigneeId" class="form-select">
+                        <option value="">Unassigned</option>
+                        @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
                         {
-                            <option value="@type">@type</option>
+                            <option value="@user.Id">@user.Username</option>
                         }
                     </select>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Priority" class="form-label"></label>
-                    <select asp-for="Priority" class="form-select">
-                        @foreach (var p in priorityOptions)
-                        {
-                            <option value="@p">@p</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="ProjectId" class="form-label"></label>
-                    <input asp-for="ProjectId" class="form-control" />
-                    <span asp-validation-for="ProjectId" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="ReporterId" class="form-label"></label>
-                    <input asp-for="ReporterId" class="form-control" />
-                    <span asp-validation-for="ReporterId" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="AssigneeId" class="form-label"></label>
-                    <input asp-for="AssigneeId" class="form-control" />
-                    <span asp-validation-for="AssigneeId" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="CONId" class="form-label"></label>
-                    <input asp-for="CONId" class="form-control" />
+                    <label asp-for="CONId" class="form-label fw-bold">CON ID <small class="text-muted">(Optional)</small></label>
+                    <input asp-for="CONId" class="form-control" placeholder="Will be auto-generated if left empty" />
+                    <div class="form-text">Leave empty to auto-generate based on project name</div>
                     <span asp-validation-for="CONId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="AttachmentPath" class="form-label">Attachment</label>
-                    <input type="file" name="Attachment" class="form-control" />
+                    <label for="Attachment" class="form-label fw-bold">Image Attachment</label>
+                    <input type="file" name="Attachment" id="Attachment" class="form-control" accept="image/*" />
+                    <div class="form-text">Upload an image file (jpg, jpeg, png, gif only)</div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Submit</button>
+                    <a asp-controller="Board" asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle me-1"></i>Cancel</a>
+                </div>
             </form>
         </div>
 
         <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Project:</strong> @ViewBag.ProjectName</p>
+                    <p><strong>Reporter:</strong> Current User</p>
+                </div>
+            </div>
+
             <div class="alert alert-info">
-                <strong>Tip:</strong> Fill out all required fields and optionally attach a document.
+                <h5><i class="bi bi-info-circle me-2"></i>Tips</h5>
+                <ul class="mb-0">
+                    <li>Fill out all required fields marked with *</li>
+                    <li>CON ID will be auto-generated if left empty</li>
+                    <li>You can optionally attach a document</li>
+                </ul>
             </div>
         </div>
     </div>

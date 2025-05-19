@@ -1,4 +1,4 @@
-﻿using JiraFinalApp201.Models.Authentication;
+using JiraFinalApp201.Models.Authentication;
 using JiraFinalApp201.Models.Projects;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -52,9 +52,8 @@ namespace JiraFinalApp201.Models.Tasks
 
             public DateTime? CompletionDate { get; set; }
 
-            [Required]
             [MaxLength(50)]
-            public string CONId { get; set; }
+            public string? CONId { get; set; }
 
             public string? AttachmentPath { get; set; }
 

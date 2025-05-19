@@ -78,25 +78,38 @@ namespace JiraFinalApp201.Controllers
         private bool IsAjaxRequest() =>
             Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool created = false)
         {
             var userId = GetCurrentUserId();
             if (userId == null)
                 return RedirectToAction("Login", "Account");
-
-            var tasks = await _taskService.GetTasksByUserIdAsync(userId.Value);
-            var mappedTasks = _mapper.Map<List<TaskViewModel>>(tasks);
-
+                
+            // Load all users
+            var users = await _userService.GetAllUsersAsync();
+            
+            // Load all projects
+            var projects = await _projectService.GetAllProjectsAsync();
+            ViewBag.Projects = projects;
+            
+            // Load ALL tasks for dashboard counts - this is critical for accurate counts
+            var allTasks = await _taskService.GetAllTasksAsync();
+            var allMappedTasks = _mapper.Map<List<TaskViewModel>>(allTasks);
+            
+            // Create the view model with all tasks for proper counts
             var model = new BoardViewModel
             {
-                Tasks = mappedTasks,
+                Tasks = allMappedTasks,
                 UserTasksViewModel = new UserTasksViewModel
                 {
-                    Users = await _userService.GetAllUsersAsync(),
-                    Tasks = mappedTasks,
-                    Projects = await _projectService.GetAllProjectsAsync()
+                    Users = users,
+                    Tasks = allMappedTasks, // Use all tasks here too for consistency
+                    Projects = projects
                 }
             };
+            
+            // Set ViewBag variables for task creation success message
+            ViewBag.TaskCreated = TempData["TaskCreated"];
+            ViewBag.TaskTitle = TempData["TaskTitle"];
 
             return View(model);
         }
@@ -122,8 +135,8 @@ namespace JiraFinalApp201.Controllers
             task.Status = task.Status == 0 ? TaskStatusEnum.ToDo : task.Status;
 
             await _taskService.AddTaskAsync(task);
+            return RedirectToAction("Index", "Board", new { created = 1 });
 
-            return Json(new { success = true });
         }
 
         public async Task<IActionResult> GetTaskDetails(int id)
@@ -198,7 +211,7 @@ namespace JiraFinalApp201.Controllers
                     Projects = await _projectService.GetAllProjectsAsync()
                 }
             };
-
+            
             return View(viewModel);
         }
     }

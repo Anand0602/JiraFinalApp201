@@ -1,6 +1,5 @@
-﻿@using static JiraFinalApp201.Models.Tasks.Taskitems
+@using static JiraFinalApp201.Models.Tasks.Taskitems
 @model JiraFinalApp201.Models.Tasks.Taskitems.TaskItem
- 
 
 @{
     ViewBag.Title = "Task Details";
@@ -8,156 +7,414 @@
     var statusClass = Model.Status switch
     {
         TaskStatusEnum.ToDo => "bg-secondary",
-        TaskStatusEnum.InProgress => "bg-info text-dark",
+        TaskStatusEnum.InProgress => "bg-primary",
         TaskStatusEnum.Done => "bg-success",
         _ => "bg-light"
     };
 
     var priorityClass = Model.Priority switch
     {
-        Priority.Low => "badge bg-success",
-        Priority.Medium => "badge bg-warning text-dark",
-        Priority.High => "badge bg-danger",
-        _ => "badge bg-secondary"
+        Priority.Low => "text-success",
+        Priority.Medium => "text-warning",
+        Priority.High => "text-danger",
+        _ => "text-secondary"
     };
-
-    var workTypeOptions = Enum.GetValues(typeof(WorkType)).Cast<WorkType>();
-    var priorityOptions = Enum.GetValues(typeof(Priority)).Cast<Priority>();
-    var statusOptions = Enum.GetValues(typeof(TaskStatusEnum)).Cast<TaskStatusEnum>();
 }
 
-@Html.AntiForgeryToken()
-
 <style>
-    .editable-field .display-view {
-        padding: 3px;
-        border-radius: 3px;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
+    .task-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    .editable-field .display-view:hover {
-        background-color: rgba(9, 30, 66, 0.04);
-        border-color: rgba(9, 30, 66, 0.1);
-        cursor: pointer;
+    
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e9e9e9;
     }
-
-    .editable-field h4, .editable-field p {
-        margin-bottom: 0;
+    
+    .task-id {
+        font-size: 14px;
+        color: #6b778c;
     }
-
-    .action-buttons {
-        margin-top: 8px;
+    
+    .task-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .task-title {
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+    
+    .task-content {
+        display: flex;
+    }
+    
+    .task-main {
+        flex: 1;
+        padding: 20px;
+        border-right: 1px solid #e9e9e9;
+    }
+    
+    .task-sidebar {
+        width: 300px;
+        padding: 20px;
+    }
+    
+    .description-container {
+        margin-bottom: 24px;
+    }
+    
+    .description-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .description-content {
+        background-color: #f4f5f7;
+        border-radius: 4px;
+        padding: 16px;
+        margin-bottom: 16px;
+        white-space: pre-line;
+    }
+    
+    .details-section {
+        margin-bottom: 16px;
+    }
+    
+    .details-header {
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .details-content {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .detail-item {
+        margin-bottom: 12px;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+        color: #6b778c;
+        margin-bottom: 4px;
+    }
+    
+    .detail-value {
+        font-size: 14px;
+    }
+    
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+    }
+    
+    .priority-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .attachment-section {
+        margin-top: 24px;
+    }
+    
+    .attachment-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid #e9e9e9;
+        border-radius: 4px;
+        margin-bottom: 8px;
     }
 </style>
 
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="d-flex align-items-center mb-2">
-                <span class="me-2 text-muted"><i class="bi bi-hash"></i> @Model.CONId</span>
-                <span class="badge @statusClass ms-2">@Model.Status</span>
-            </div>
-
-            <!-- Editable Title -->
-            <div class="editable-field mb-3" data-field="Title" data-id="@Model.Id">
-                <div class="display-view">
-                    <h4 class="fw-bold">@Model.Title</h4>
-                </div>
-                <div class="edit-view" style="display:none;">
-                    <input type="text" class="form-control" value="@Model.Title">
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check"></i></button>
-                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x"></i></button>
+<div class="container mt-4">
+    <!-- Task Header with ID and Actions -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="task-id me-2">
+                            <span class="text-muted"><i class="bi bi-hash"></i> @Model.CONId</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Editable Description -->
-            <div class="editable-field mb-3" data-field="Description" data-id="@Model.Id">
-                <div class="display-view">
-                    <p>@Model.Description</p>
+    
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- Title with inline editing -->
+                            <div class="editable-field mb-4" data-field="Title" data-id="@Model.Id">
+                                <div class="display-view">
+                                    <h2 class="task-title">@Model.Title</h2>
+                                </div>
+                                <div class="edit-view" style="display:none;">
+                                    <input type="text" class="form-control mb-2" value="@Model.Title">
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
+                                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Description with inline editing -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Description</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="editable-field" data-field="Description" data-id="@Model.Id">
+                                        <div class="display-view">
+                                            @if (string.IsNullOrEmpty(Model.Description))
+                                            {
+                                                <p class="text-muted">No description provided</p>
+                                            }
+                                            else
+                                            {
+                                                <p>@Model.Description</p>
+                                            }
+                                    
+                                        </div>
+                                        <div class="edit-view" style="display:none;">
+                                            <textarea class="form-control mb-2" rows="5">@Model.Description</textarea>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
+                                                <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+            
+            <!-- Attachment Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Attachments</h5>
                 </div>
-                <div class="edit-view" style="display:none;">
-                    <textarea class="form-control" rows="3">@Model.Description</textarea>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check"></i></button>
-                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x"></i></button>
-                    </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.AttachmentPath))
+                    {
+                        @if (Model.AttachmentPath.EndsWith(".jpg") || Model.AttachmentPath.EndsWith(".jpeg") || Model.AttachmentPath.EndsWith(".png") || Model.AttachmentPath.EndsWith(".gif"))
+                        {
+                            <!-- Display image if it's an image file -->
+                            <div class="text-center mb-3">
+                                <img src="@Url.Content(Model.AttachmentPath)" class="img-fluid rounded" style="max-height: 300px;" alt="Attachment" />
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-paperclip me-2"></i>
+                                <a href="@Url.Content(Model.AttachmentPath)" target="_blank">@System.IO.Path.GetFileName(Model.AttachmentPath)</a>
+                            </div>
+                            <div>
+                                <form method="post" action="@Url.Action("RemoveAttachment", "Task")" style="display: inline;">
+                                    <input type="hidden" name="taskId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to remove this attachment?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Reupload option -->
+                        <div class="mt-3">
+                            <form method="post" action="@Url.Action("UploadAttachment", "Task")" enctype="multipart/form-data">
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <div class="input-group">
+                                    <input type="file" class="form-control" name="attachment" id="reuploadAttachment" accept="image/*" />
+                                    <button class="btn btn-outline-primary" type="submit">
+                                        <i class="bi bi-arrow-repeat"></i> Reupload
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Upload option when no attachment exists -->
+                        <form method="post" action="@Url.Action("UploadAttachment", "Task")" enctype="multipart/form-data">
+                            <input type="hidden" name="taskId" value="@Model.Id" />
+                            <div class="text-center p-4 border rounded">
+                                <p class="mb-3">Drag and drop files here or</p>
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-3 w-100">
+                                        <input type="file" class="form-control" name="attachment" id="uploadAttachment" accept="image/*" />
+                                    </div>
+                                    <div>
+                                        <span id="fileChosen">No file chosen</span>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-3">
+                                        Upload
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    }
                 </div>
             </div>
-
-            <!-- Dropdowns -->
-            <div class="mb-3">
-                <strong>Work Type:</strong>
-                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="WorkType" data-id="@Model.Id">
-                    @foreach (var type in workTypeOptions)
-                    {
-                        <option value="@type" @@(type == Model.WorkType ? "selected" : "")>@type</option>
-                    }
-                </select>
-
-                <strong class="ms-3">Priority:</strong>
-                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="Priority" data-id="@Model.Id">
-                    @foreach (var p in priorityOptions)
-                    {
-                        <option value="@p" @@(p == Model.Priority ? "selected" : "")>@p</option>
-                    }
-                </select>
-
-                <strong class="ms-3">Status:</strong>
-                <select class="auto-save-select form-select-sm d-inline w-auto ms-2" data-field="Status" data-id="@Model.Id">
-                    @foreach (var s in statusOptions)
-                    {
-                        <option value="@s" @@(s == Model.Status ? "selected" : "")>@s</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Timestamps -->
-            <div class="mb-3">
-                <strong>Created:</strong> @Model.CreatedAt:yyyy-MM-dd
-                @if (Model.CompletionDate.HasValue)
-                {
-                    <span class="ms-3"><strong>Completed:</strong> @Model.CompletionDate:yyyy-MM-dd</span>
-                }
-            </div>
-
-            <!-- Project -->
-            <div class="mb-3">
-                <strong>Project:</strong> @Model.Project?.Name
-            </div>
-
-            <!-- Attachments -->
-            @if (!string.IsNullOrEmpty(Model.AttachmentPath))
-            {
-                <div class="mb-3">
-                    <strong>Attachment:</strong>
-                    <div>
-                        <a href="@Url.Content(Model.AttachmentPath)" target="_blank">
-                            @System.IO.Path.GetFileName(Model.AttachmentPath)
-                        </a>
-                    </div>
-                </div>
-            }
         </div>
-
+        
         <!-- Sidebar -->
         <div class="col-md-4">
-            <div class="card">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Details</h5>
+                </div>
                 <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><strong>Reporter:</strong> <span class="badge bg-primary">@Model.Reporter?.Username</span></li>
-                        <li><strong>Assignee:</strong> <span class="badge bg-secondary">@(Model.Assignee?.Username ?? "Unassigned")</span></li>
-                        <li><strong>Task ID:</strong> @Model.Id</li>
-                        <li><strong>CON ID:</strong> @Model.CONId</li>
-                        <li><strong>Created At:</strong> @Model.CreatedAt:yyyy-MM-dd</li>
-                        <li><strong>Completion Date:</strong> @(Model.CompletionDate?.ToString("yyyy-MM-dd") ?? "N/A")</li>
-                    </ul>
+                    <!-- Status with inline editing -->
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Status</div>
+                        <div class="editable-field" data-field="Status" data-id="@Model.Id">
+                            <div class="display-view d-flex align-items-center">
+                                <div class="badge bg-secondary me-2">@Model.Status</div>
+                                <i class="bi bi-pencil-fill small text-muted"></i>
+                            </div>
+                            <div class="edit-view" style="display:none;">
+                                <select class="form-select form-select-sm mb-2">
+                                    @foreach (var status in Enum.GetValues(typeof(TaskStatusEnum)))
+                                    {
+                                        <option value="@status" @@(Model.Status == (TaskStatusEnum)status ? "selected" : "")>@status</option>
+                                    }
+                                </select>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
+                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Priority with inline editing -->
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Priority</div>
+                        <div class="editable-field" data-field="Priority" data-id="@Model.Id">
+                            <div class="display-view d-flex align-items-center">
+                                <div class="badge bg-warning text-dark me-2">@Model.Priority</div>
+                                <i class="bi bi-pencil-fill small text-muted"></i>
+                            </div>
+                            <div class="edit-view" style="display:none;">
+                                <select class="form-select form-select-sm mb-2">
+                                    @foreach (var priority in Enum.GetValues(typeof(Priority)))
+                                    {
+                                        <option value="@priority" @@(Model.Priority == (Priority)priority ? "selected" : "")>@priority</option>
+                                    }
+                                </select>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
+                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Work Type -->
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Work Type</div>
+                        <div>@Model.WorkType</div>
+                    </div>
+                    
+                    <!-- Dates -->
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Start date</div>
+                        <div>@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Completion date</div>
+                        <div>@(Model.CompletionDate.HasValue ? Model.CompletionDate.Value.ToString("MMM dd, yyyy") : "None")</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Due date</div>
+                        <div>None</div>
+                    </div>
+                    
+                    <!-- Project -->
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Project</div>
+                        <div>@(Model.Project?.Name ?? ViewBag.ProjectName ?? "Unknown")</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- People -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">People</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Reporter</div>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 14px;">@ViewBag.ReporterName?.Substring(0, 1).ToUpper()</div>
+                            <div>@ViewBag.ReporterName</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Assignee</div>
+                        <div class="editable-field" data-field="AssigneeId" data-id="@Model.Id">
+                            <div class="display-view d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(ViewBag.AssigneeName))
+                                {
+                                    <div class="d-flex align-items-center me-2">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 14px;">@ViewBag.AssigneeName.Substring(0, 1).ToUpper()</div>
+                                        <div>@ViewBag.AssigneeName</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted me-2">Unassigned</div>
+                                }
+                                <i class="bi bi-pencil-fill small text-muted"></i>
+                            </div>
+                            <div class="edit-view" style="display:none;">
+                                <select class="form-select form-select-sm mb-2">
+                                    <option value="">Unassigned</option>
+                                    @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
+                                    {
+                                        <option value="@user.Id" @@(Model.AssigneeId == user.Id ? "selected" : "")>@user.Username</option>
+                                    }
+                                </select>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
+                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="@Url.Action("Index", "Board")" class="btn btn-outline-secondary">
+        Back to Board
+    </a>
 </div>
 
 @section Scripts {
@@ -165,23 +422,53 @@
         $(document).ready(function () {
             const token = $('input[name="__RequestVerificationToken"]').val();
 
+            // Make all editable fields clickable to show edit view
             $('.editable-field .display-view').click(function () {
                 const container = $(this).closest('.editable-field');
                 container.find('.display-view').hide();
-                container.find('.edit-view').show().find('input, textarea').focus();
+                container.find('.edit-view').show().find('input, textarea, select').focus();
             });
 
+            // Cancel button hides edit view and shows display view
             $('.cancel-edit').click(function () {
                 const container = $(this).closest('.editable-field');
                 container.find('.edit-view').hide();
                 container.find('.display-view').show();
             });
 
+            // Update file input display
+            $('#uploadAttachment').change(function() {
+                const fileName = $(this).val().split('\\').pop();
+                $('#fileChosen').text(fileName || 'No file chosen');
+            });
+            
+            // Handle reupload file input display
+            $('#reuploadAttachment').change(function() {
+                const fileName = $(this).val().split('\\').pop();
+                if (fileName) {
+                    $(this).next('.btn').text('Upload ' + fileName);
+                }
+            });
+
+            // Save button sends AJAX request to update field
             $('.save-edit').click(function () {
                 const container = $(this).closest('.editable-field');
                 const field = container.data('field');
                 const id = container.data('id');
-                const value = container.find('input, textarea').val();
+                let value;
+                
+                // Get value based on field type
+                if (field === 'Description') {
+                    value = container.find('textarea').val();
+                } else {
+                    value = container.find('select, input').val();
+                }
+                
+                // Show loading indicator
+                const saveBtn = $(this);
+                const originalContent = saveBtn.html();
+                saveBtn.html('<i class="bi bi-hourglass-split"></i>');
+                saveBtn.prop('disabled', true);
 
                 $.ajax({
                     url: '/Task/UpdateField',
@@ -191,18 +478,38 @@
                     success: function (response) {
                         if (response.success) {
                             container.find('.edit-view').hide();
-                            container.find('.display-view').show();
-                            if (field === 'Title') {
-                                container.find('h4').text(value);
+                            
+                            // Update the display view with the new value
+                            if (field === 'Description') {
+                                container.find('.display-view p').text(value || 'No description provided');
+                            } else if (field === 'Status') {
+                                container.find('.display-view .badge').text(value);
+                            } else if (field === 'Priority') {
+                                container.find('.display-view .badge').text(value);
+                            } else if (field === 'AssigneeId') {
+                                // For AssigneeId, we need to refresh the page to show updated user avatar
+                                location.reload();
+                                return;
+                            } else if (field === 'Title') {
+                                container.find('.display-view h2').text(value);
                             } else {
-                                container.find('p').text(value);
+                                container.find('.display-view').text(value);
                             }
+                            
+                            container.find('.display-view').show();
                         } else {
-                            alert('Failed to update: ' + response.message);
+                            alert('Error: ' + response.message);
                         }
+                        
+                        // Reset save button
+                        saveBtn.html(originalContent);
+                        saveBtn.prop('disabled', false);
                     },
                     error: function () {
                         alert('An error occurred while updating the field.');
+                        // Reset save button
+                        saveBtn.html(originalContent);
+                        saveBtn.prop('disabled', false);
                     }
                 });
             });

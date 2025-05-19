@@ -45,7 +45,11 @@ namespace JiraFinalApp201.Services.Tasks
 
             public async Task<TaskItem> CreateTaskAsync(TaskItem task)
             {
-               
+                // Always generate CONId if null or empty
+                if (string.IsNullOrWhiteSpace(task.CONId))
+                {
+                    task.CONId = await GenerateConIdForTaskAsync(task.ProjectId);
+                }
 
                 _context.Tasks.Add(task);
                 await _context.SaveChangesAsync();
@@ -116,10 +120,24 @@ namespace JiraFinalApp201.Services.Tasks
                 return await CreateTaskAsync(task);
             }
  
-            private string GenerateConIdForProject(int projectId)
+            private async Task<string> GenerateConIdForTaskAsync(int projectId)
             {
-                 
-                throw new NotImplementedException();
+                // Get project name for prefix or use default
+                string prefix = "TASK";
+                var project = await _context.Projects.FindAsync(projectId);
+                if (project != null && !string.IsNullOrEmpty(project.Name))
+                {
+                    // Use first 3-4 characters of project name as prefix
+                    prefix = project.Name.Length <= 4 ? 
+                             project.Name.ToUpper() : 
+                             project.Name.Substring(0, 4).ToUpper();
+                }
+                
+                // Count existing tasks for this project to generate sequential number
+                int taskCount = await _context.Tasks.CountAsync(t => t.ProjectId == projectId);
+                
+                // Format: PREFIX-123 (e.g., PROJ-123)
+                return $"{prefix}-{taskCount + 1}";
             }
         }
 
