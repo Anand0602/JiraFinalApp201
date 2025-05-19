@@ -1,7 +1,7 @@
-Sure! Here's the **entire enhanced `README.md` content** — just copy and paste it into your `README.md` file:
+ 
 
 ````markdown
-# 🛠️ JiraFinalApp201
+## 🛠️ JiraApp
 
 A **Jira-inspired Task Management Web App** built with **ASP.NET Core MVC**, **Entity Framework Core**, and **AutoMapper**. This application enables users to manage projects and tasks with unique, scoped identifiers (`CON-2-5`), and is structured with a clean, scalable architecture.
 
