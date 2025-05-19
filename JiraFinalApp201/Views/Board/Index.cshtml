@@ -14,9 +14,28 @@
     }
 
     .board-column-header {
-        padding: 10px;
+        padding: 12px;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        border-radius: 6px 6px 0 0;
+        color: white;
+        text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+    
+    .board-column-header.todo {
+        background: linear-gradient(135deg, var(--primary-color), #4285f4);
+    }
+    
+    .board-column-header.in-progress {
+        background: linear-gradient(135deg, var(--warning-color), #ff9800);
+    }
+    
+    .board-column-header.done {
+        background: linear-gradient(135deg, var(--success-color), #2e7d32);
+    }
+    
+    .board-column-header.blocked {
+        background: linear-gradient(135deg, var(--danger-color), #c62828);
     }
 
     .disabled-task {
@@ -26,27 +45,74 @@
 
     .task-card {
         cursor: pointer;
-        transition: all 0.2s ease;
-        border-left: 3px solid #3498db;
+        transition: all 0.3s ease;
         position: relative;
+        background-color: white;
+        border: none;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
+        padding: 12px;
+    }
+    
+    .task-card.bug {
+        border-left: 4px solid var(--danger-color);
+    }
+    
+    .task-card.story {
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .task-card.task {
+        border-left: 4px solid var(--secondary-color);
     }
 
-        .task-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
+    .task-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+    }
 
-        .task-card.dragging {
-            opacity: 0.5;
-            transform: scale(0.95);
-        }
+    .task-card.dragging {
+        opacity: 0.7;
+        transform: scale(0.97);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .task-card .badge {
+        font-weight: 500;
+        padding: 5px 8px;
+        border-radius: 4px;
+    }
 
     .task-container {
         min-height: 100px;
-        padding: 8px;
-        border-radius: 4px;
-        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 0 0 6px 6px;
+        background-color: rgba(248, 249, 250, 0.7);
         transition: background-color 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-top: none;
+    }
+    
+    .task-container.todo-container {
+        background-color: var(--primary-light);
+    }
+    
+    .task-container.in-progress-container {
+        background-color: var(--warning-light);
+    }
+    
+    .task-container.done-container {
+        background-color: var(--success-light);
+    }
+    
+    .task-container.blocked-container {
+        background-color: var(--danger-light);
+    }
+    
+    .task-container.highlight {
+        background-color: rgba(230, 240, 255, 0.8);
+        border: 1px dashed var(--primary-color);
     }
 
         .task-container.drag-over {
@@ -119,6 +185,70 @@
     .collapsed .bi-chevron-down {
         transform: rotate(-90deg);
     }
+    
+    /* Search styles */
+    #searchInput {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #333;
+        border: 1px solid #ced4da;
+    }
+    
+    #searchInput:focus {
+        box-shadow: none;
+        border-color: #80bdff;
+    }
+    
+    .search-result-item {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .search-result-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .search-result-item .task-id {
+        font-weight: bold;
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+    
+    .search-result-item .task-title {
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 10px;
+    }
+    
+    .search-result-item .status-badge {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+    }
+    
+    .status-badge.to-do {
+        background-color: #0dcaf0;
+        color: #fff;
+    }
+    
+    .status-badge.in-progress {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-badge.done {
+        background-color: #198754;
+        color: #fff;
+    }
 </style>
 
 <div class="container-fluid">
@@ -142,7 +272,26 @@
         <div class="col-md-6">
             <h2 class="mb-0">Dev board</h2>
         </div>
-        <div class="d-flex justify-content-end">
+        <div class="col-md-6 d-flex justify-content-end">
+            <div class="search-container position-relative me-3" style="width: 350px;">
+              
+                <div id="searchResults" class="position-absolute w-100 bg-dark text-white rounded-bottom shadow-lg" style="display: none; z-index: 1000; max-height: 400px; overflow-y: auto;">
+                    <div class="p-3">
+                        <div id="latestSearches" class="mb-3">
+                            <h6 class="text-muted mb-2">Latest searches</h6>
+                            <div id="latestSearchesList"></div>
+                        </div>
+                        <div id="commonSearches">
+                            <h6 class="text-muted mb-2">Most common searches</h6>
+                            <div id="commonSearchesList"></div>
+                        </div>
+                        <div id="searchResultsList" style="display: none;">
+                            <h6 class="text-muted mb-2">Search results</h6>
+                            <div id="resultsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <a href="#" class="btn btn-primary" id="createTaskBtn">
                 <i class="bi bi-plus-circle me-1"></i>Create Task
             </a>
@@ -295,6 +444,165 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <script>
+        // Search functionality
+        $(document).ready(function() {
+            console.log('Search functionality initialized');
+            const searchInput = $('#searchInput');
+            const searchResults = $('#searchResults');
+            const latestSearchesList = $('#latestSearchesList');
+            const commonSearchesList = $('#commonSearchesList');
+            const searchResultsList = $('#searchResultsList');
+            const resultsList = $('#resultsList');
+            
+            // Sample data for testing - to be removed in production
+            const testData = [
+                { id: 1, conId: 'TASK-1', title: 'Sample Task 1', status: 'ToDo', statusClass: 'to-do' },
+                { id: 2, conId: 'TASK-2', title: 'Sample Task 2', status: 'InProgress', statusClass: 'in-progress' }
+            ];
+            
+            // Populate latest and common searches
+            function populateSearches() {
+                latestSearchesList.empty();
+                commonSearchesList.empty();
+                
+                latestSearchesList.html('<div class="p-3 text-muted">No recent searches</div>');
+                commonSearchesList.html('<div class="p-3 text-muted">No common searches</div>');
+            }
+            
+            // Create search result item HTML
+            function createSearchResultItem(item) {
+                return `<div class="search-result-item" data-id="${item.id || ''}" data-conid="${item.conId}">
+                    <div class="task-id">${item.conId}</div>
+                    <div class="task-title">${item.title}</div>
+                    <div class="status-badge ${item.statusClass}">${item.status}</div>
+                </div>`;
+            }
+            
+            // Function to perform search
+            function performSearch(term) {
+                console.log('Performing search for: ' + term);
+                
+                // For testing without backend
+                if (term === 'test') {
+                    // Hide latest and common searches, show search results
+                    $('#latestSearches, #commonSearches').hide();
+                    searchResultsList.show();
+                    
+                    // Clear and populate results
+                    resultsList.empty();
+                    testData.forEach(item => {
+                        resultsList.append(createSearchResultItem(item));
+                    });
+                    return;
+                }
+                
+                // Make AJAX request to search endpoint
+                $.ajax({
+                    url: '@Url.Action("Search", "Board")',
+                    type: 'GET',
+                    data: { term: term },
+                    success: function(response) {
+                        console.log('Search response:', response);
+                        if (response.success) {
+                            // Hide latest and common searches, show search results
+                            $('#latestSearches, #commonSearches').hide();
+                            searchResultsList.show();
+                            
+                            // Clear and populate results
+                            resultsList.empty();
+                            
+                            if (response.results.length === 0) {
+                                resultsList.html('<div class="p-3 text-muted">No results found</div>');
+                            } else {
+                                response.results.forEach(item => {
+                                    resultsList.append(createSearchResultItem(item));
+                                });
+                            }
+                        } else {
+                            console.error('Search failed:', response.message);
+                            resultsList.html('<div class="p-3 text-danger">Error: ' + response.message + '</div>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error:', status, error);
+                        resultsList.html('<div class="p-3 text-danger">Error searching tasks</div>');
+                    }
+                });
+            }
+            
+            // Handle search input
+            let searchTimeout;
+            searchInput.on('input', function() {
+                console.log('Search input event fired');
+                const term = $(this).val().trim();
+                
+                // Clear previous timeout
+                clearTimeout(searchTimeout);
+                
+                // Show search results container
+                searchResults.show();
+                
+                if (term.length === 0) {
+                    // Show latest and common searches, hide search results
+                    searchResultsList.hide();
+                    $('#latestSearches, #commonSearches').show();
+                    populateSearches();
+                    return;
+                }
+                
+                // Set timeout to prevent too many requests
+                searchTimeout = setTimeout(function() {
+                    performSearch(term);
+                }, 300); // Debounce for 300ms
+            });
+            
+            // Handle click outside to close search results
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.search-container').length) {
+                    searchResults.hide();
+                }
+            });
+            
+            // Handle focus on search input
+            searchInput.on('focus', function() {
+                console.log('Search input focused');
+                searchResults.show();
+                if ($(this).val().trim().length === 0) {
+                    // Show latest and common searches
+                    searchResultsList.hide();
+                    $('#latestSearches, #commonSearches').show();
+                    populateSearches();
+                }
+            });
+            
+            // Handle click on search result item
+            $(document).on('click', '.search-result-item', function() {
+                const taskId = $(this).data('id');
+                const conId = $(this).data('conid');
+                
+                console.log('Clicked on task:', taskId, conId);
+                
+                // Redirect to task details page
+                if (taskId) {
+                    window.location.href = '@Url.Action("Details", "Task")/' + taskId;
+                } else {
+                    // Search for task by CON-ID and then redirect
+                    performSearch(conId);
+                }
+            });
+            
+            // Initialize search on page load
+            populateSearches();
+            
+            // Add keyboard shortcut for search (Command+F or Ctrl+F)
+            $(document).on('keydown', function(e) {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+        });
+        
         // Update badge counts dynamically
         function updateBadgeCounts() {
             var todoCount = document.querySelectorAll('.task-container[data-status="0"] .task-card').length;

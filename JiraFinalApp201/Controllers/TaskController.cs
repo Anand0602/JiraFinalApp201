@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 namespace JiraFinalApp201.Controllers
 {
     
-   public class TaskController : Controller
+   public class TaskController : BaseController
     {
         private readonly JiraFinalApp201Db _context;
         private readonly ITaskService _taskService;
@@ -23,6 +23,7 @@ namespace JiraFinalApp201.Controllers
             ITaskService taskService,
             IProjectService projectService,
             IUserService userService)
+            : base(projectService)
         {
             _context = context;
             _taskService = taskService;
@@ -258,6 +259,9 @@ namespace JiraFinalApp201.Controllers
                 if (task == null)
                     return NotFound();
 
+                // Set ViewBag for task details page
+                ViewBag.IsTaskDetailsPage = true;
+                
                 // Return the Details view for the task
                 return View("Details", task);
             }

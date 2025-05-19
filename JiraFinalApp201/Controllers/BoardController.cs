@@ -47,7 +47,7 @@ namespace JiraFinalApp201.Controllers
         }
     }
 
-    public class BoardController : Controller
+    public class BoardController : BaseController
     {
         private readonly ILogger<BoardController> _logger;
         private readonly ITaskService _taskService;
@@ -61,6 +61,7 @@ namespace JiraFinalApp201.Controllers
             IUserService userService,
             IProjectService projectService,
             IMapper mapper)
+            : base(projectService)
         {
             _logger = logger;
             _taskService = taskService;
@@ -213,6 +214,56 @@ namespace JiraFinalApp201.Controllers
             };
             
             return View(viewModel);
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> Search(string term)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                    return Json(new { success = false, message = "User not authenticated" });
+                    
+                if (string.IsNullOrWhiteSpace(term))
+                    return Json(new { success = true, results = new List<object>() });
+                    
+                // Get search results
+                var searchResults = await _taskService.SearchTasksAsync(term);
+                
+                // Transform to view model
+                var results = searchResults.Select(task => new {
+                    id = task.Id,
+                    conId = task.CONId ?? $"TASK-{task.Id}",  // Fallback if CONId is null
+                    title = task.Title ?? "Untitled Task",      // Fallback if Title is null
+                    status = task.Status.ToString(),
+                    statusClass = GetStatusClass(task.Status)
+                }).ToList();
+                
+                // For debugging
+                _logger.LogInformation($"Search for '{term}' returned {results.Count} results");
+                
+                return Json(new { 
+                    success = true, 
+                    results = results
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error searching for '{term}'");
+                return Json(new { success = false, message = "An error occurred while searching." });
+            }
+        }
+        
+        private string GetStatusClass(TaskStatusEnum status)
+        {
+            return status switch
+            {
+                TaskStatusEnum.ToDo => "to-do",
+                TaskStatusEnum.InProgress => "in-progress",
+                TaskStatusEnum.Done => "done",
+                _ => ""
+            };
         }
     }
 }

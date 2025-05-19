@@ -1,0 +1,435 @@
+@model IEnumerable<JiraFinalApp201.Models.Tasks.Taskitems.TaskItem>
+@using static JiraFinalApp201.Models.Tasks.Taskitems
+
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<style>
+    /* Calendar specific styles */
+    .calendar-card {
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .calendar-header {
+        background: linear-gradient(135deg, var(--primary-color), #4285f4);
+        color: white;
+        padding: 15px 20px;
+        border-bottom: none;
+    }
+    
+    .calendar-title {
+        font-weight: 600;
+        margin-bottom: 0;
+        text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+    
+    .calendar-controls .btn {
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .calendar-controls .btn-primary {
+        background-color: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
+        color: white;
+    }
+    
+    .calendar-controls .btn-primary:hover {
+        background-color: rgba(255,255,255,0.3);
+        border-color: rgba(255,255,255,0.4);
+    }
+    
+    .calendar-controls .btn-outline-light {
+        border-color: rgba(255,255,255,0.5);
+        color: white;
+    }
+    
+    .calendar-controls .btn-outline-light:hover {
+        background-color: rgba(255,255,255,0.1);
+    }
+    
+    .calendar-controls .btn-outline-light.active {
+        background-color: rgba(255,255,255,0.2);
+        font-weight: 600;
+    }
+    
+    .filter-card {
+        border: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .filter-header {
+        background: linear-gradient(135deg, var(--purple-color), #9c27b0);
+        color: white;
+        padding: 12px 15px;
+    }
+    
+    .upcoming-card {
+        border: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .upcoming-header {
+        background: linear-gradient(135deg, var(--info-color), #00b0ff);
+        color: white;
+        padding: 12px 15px;
+    }
+    
+    /* Enhance FullCalendar styling */
+    .fc-theme-standard .fc-scrollgrid {
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .fc-theme-standard th {
+        background-color: #f8f9fa;
+        padding: 10px;
+        font-weight: 600;
+    }
+    
+    .fc-theme-standard td {
+        border-color: rgba(0,0,0,0.05);
+    }
+    
+    .fc-daygrid-day-number {
+        font-weight: 500;
+        padding: 8px;
+    }
+    
+    .fc-daygrid-day.fc-day-today {
+        background-color: var(--primary-light) !important;
+    }
+    
+    .fc-event {
+        border-radius: 4px;
+        padding: 2px 4px;
+        font-weight: 500;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card calendar-card">
+                <div class="card-header calendar-header d-flex justify-content-between align-items-center">
+                    <h5 class="calendar-title">Task Calendar</h5>
+                    <div class="calendar-controls">
+                        <button id="todayBtn" class="btn btn-primary btn-sm">Today</button>
+                        <div class="btn-group btn-group-sm mx-2">
+                            <button id="prevBtn" class="btn btn-outline-light"><i class="fas fa-chevron-left"></i></button>
+                            <button id="nextBtn" class="btn btn-outline-light"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button id="monthViewBtn" class="btn btn-outline-light active">Month</button>
+                            <button id="weekViewBtn" class="btn btn-outline-light">Week</button>
+                            <button id="dayViewBtn" class="btn btn-outline-light">Day</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0 pt-3">
+                    <div id="calendar" class="p-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card filter-card mb-4">
+                <div class="card-header filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input status-filter" type="checkbox" id="statusToDo" value="ToDo" checked>
+                                <label class="form-check-label" for="statusToDo">To Do</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input status-filter" type="checkbox" id="statusInProgress" value="InProgress" checked>
+                                <label class="form-check-label" for="statusInProgress">In Progress</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input status-filter" type="checkbox" id="statusDone" value="Done" checked>
+                                <label class="form-check-label" for="statusDone">Done</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Priority</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input priority-filter" type="checkbox" id="priorityLow" value="Low" checked>
+                                <label class="form-check-label" for="priorityLow">Low</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input priority-filter" type="checkbox" id="priorityMedium" value="Medium" checked>
+                                <label class="form-check-label" for="priorityMedium">Medium</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input priority-filter" type="checkbox" id="priorityHigh" value="High" checked>
+                                <label class="form-check-label" for="priorityHigh">High</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="projectFilter" class="form-label">Project</label>
+                        <select id="projectFilter" class="form-select">
+                            <option value="">All Projects</option>
+                            @foreach (var project in ViewBag.Projects)
+                            {
+                                <option value="@project.Id">@project.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Legend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="color-box bg-primary me-2"></div>
+                        <span>To Do</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="color-box bg-warning me-2"></div>
+                        <span>In Progress</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="color-box bg-success me-2"></div>
+                        <span>Done</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card upcoming-card">
+                <div class="card-header upcoming-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Upcoming Tasks</h5>
+                </div>
+                <div class="card-body">
+                    <div id="upcomingTasks">
+                        @if (Model.Any())
+                        {
+                            <ul class="list-group">
+                                @foreach (var task in Model.Where(t => t.Status != TaskStatusEnum.Done).OrderBy(t => t.CompletionDate ?? DateTime.MaxValue).Take(5))
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge @(task.Status == TaskStatusEnum.ToDo ? "bg-primary" : "bg-warning") me-2">@task.Status</span>
+                                            <a href="@Url.Action("Details", "Task", new { id = task.Id })">@task.Title</a>
+                                        </div>
+                                        <div>
+                                            @if (task.CompletionDate.HasValue)
+                                            {
+                                                <span class="text-muted">Due: @task.CompletionDate.Value.ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No upcoming tasks</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Title:</strong> <span id="eventTitle"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong> <span id="eventStatus"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Priority:</strong> <span id="eventPriority"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Project:</strong> <span id="eventProject"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Assignee:</strong> <span id="eventAssignee"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Description:</strong>
+                    <p id="eventDescription" class="mt-1"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="viewTaskBtn" href="#" class="btn btn-primary">View Task</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #calendar {
+        height: 650px;
+    }
+    
+    .color-box {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+    
+    .fc-event {
+        cursor: pointer;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.25rem !important;
+    }
+</style>
+
+@section Scripts {
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet" />
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize calendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: false, // We'll use our custom header
+                events: '@Url.Action("GetEvents", "Calendar")',
+                eventTimeFormat: {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: 'short'
+                },
+                eventClick: function(info) {
+                    showEventDetails(info.event);
+                },
+                loading: function(isLoading) {
+                    if (isLoading) {
+                        // Show loading indicator
+                    } else {
+                        // Hide loading indicator
+                        applyFilters();
+                    }
+                }
+            });
+            
+            calendar.render();
+            
+            // Custom header buttons
+            document.getElementById('todayBtn').addEventListener('click', function() {
+                calendar.today();
+            });
+            
+            document.getElementById('prevBtn').addEventListener('click', function() {
+                calendar.prev();
+            });
+            
+            document.getElementById('nextBtn').addEventListener('click', function() {
+                calendar.next();
+            });
+            
+            document.getElementById('monthViewBtn').addEventListener('click', function() {
+                setActiveViewButton('monthViewBtn');
+                calendar.changeView('dayGridMonth');
+            });
+            
+            document.getElementById('weekViewBtn').addEventListener('click', function() {
+                setActiveViewButton('weekViewBtn');
+                calendar.changeView('timeGridWeek');
+            });
+            
+            document.getElementById('dayViewBtn').addEventListener('click', function() {
+                setActiveViewButton('dayViewBtn');
+                calendar.changeView('timeGridDay');
+            });
+            
+            function setActiveViewButton(activeId) {
+                ['monthViewBtn', 'weekViewBtn', 'dayViewBtn'].forEach(function(id) {
+                    document.getElementById(id).classList.remove('active');
+                });
+                document.getElementById(activeId).classList.add('active');
+            }
+            
+            // Event details modal
+            function showEventDetails(event) {
+                document.getElementById('eventTitle').textContent = event.title;
+                document.getElementById('eventStatus').textContent = event.extendedProps.status;
+                document.getElementById('eventPriority').textContent = event.extendedProps.priority;
+                document.getElementById('eventProject').textContent = event.extendedProps.projectName;
+                document.getElementById('eventAssignee').textContent = event.extendedProps.assigneeName;
+                document.getElementById('eventDescription').textContent = event.extendedProps.description || 'No description';
+                
+                var viewTaskBtn = document.getElementById('viewTaskBtn');
+                viewTaskBtn.href = event.url;
+                
+                var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                eventModal.show();
+            }
+            
+            // Filters
+            function applyFilters() {
+                var selectedStatuses = Array.from(document.querySelectorAll('.status-filter:checked')).map(cb => cb.value);
+                var selectedPriorities = Array.from(document.querySelectorAll('.priority-filter:checked')).map(cb => cb.value);
+                var selectedProject = document.getElementById('projectFilter').value;
+                
+                var allEvents = calendar.getEvents();
+                
+                allEvents.forEach(function(event) {
+                    var matchesStatus = selectedStatuses.includes(event.extendedProps.status);
+                    var matchesPriority = selectedPriorities.includes(event.extendedProps.priority);
+                    var matchesProject = !selectedProject || event.extendedProps.projectId.toString() === selectedProject;
+                    
+                    if (matchesStatus && matchesPriority && matchesProject) {
+                        event.setProp('display', 'auto');
+                    } else {
+                        event.setProp('display', 'none');
+                    }
+                });
+            }
+            
+            // Filter change events
+            document.querySelectorAll('.status-filter, .priority-filter').forEach(function(checkbox) {
+                checkbox.addEventListener('change', applyFilters);
+            });
+            
+            document.getElementById('projectFilter').addEventListener('change', applyFilters);
+        });
+    </script>
+}

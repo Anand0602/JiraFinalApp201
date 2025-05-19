@@ -96,20 +96,20 @@ namespace JiraFinalApp201.Controllers
         {
             try
             {
-                // Server-side validation for required fields
+                // Server-side validation 
                 if (string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.Password))
                 {
                     ModelState.AddModelError("", "Email and password are required.");
                     return View(user);
                 }
 
-                // Validate the model attributes (like [EmailAddress], [Required], etc.)
+                // Validate the model attributes  
                 if (!ModelState.IsValid)
                 {
                     return View(user);
                 }
 
-                // Check if email already exists
+                // Checking if email already exists
                 bool emailExists;
                 try
                 {

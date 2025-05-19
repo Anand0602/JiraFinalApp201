@@ -139,6 +139,29 @@ namespace JiraFinalApp201.Services.Tasks
                 // Format: PREFIX-123 (e.g., PROJ-123)
                 return $"{prefix}-{taskCount + 1}";
             }
+            
+            public async Task<IEnumerable<TaskItem>> SearchTasksAsync(string searchTerm)
+            {
+                if (string.IsNullOrWhiteSpace(searchTerm))
+                    return new List<TaskItem>();
+                    
+                searchTerm = searchTerm.ToLower().Trim();
+                
+                return await _context.Tasks
+                    .Include(t => t.Assignee)
+                    .Include(t => t.Reporter)
+                    .Include(t => t.Project)
+                    .Where(t => 
+                        (t.CONId != null && t.CONId.ToLower().Contains(searchTerm)) ||
+                        (t.Title != null && t.Title.ToLower().Contains(searchTerm)) ||
+                        (t.Description != null && t.Description.ToLower().Contains(searchTerm)) ||
+                        (t.Assignee != null && t.Assignee.Username != null && t.Assignee.Username.ToLower().Contains(searchTerm)) ||
+                        (t.Reporter != null && t.Reporter.Username != null && t.Reporter.Username.ToLower().Contains(searchTerm))
+                    )
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Take(10) // Limit to 10 results
+                    .ToListAsync();
+            }
         }
 
 }

@@ -1,4 +1,4 @@
-﻿using static JiraFinalApp201.Models.Tasks.Taskitems;
+using static JiraFinalApp201.Models.Tasks.Taskitems;
 
 namespace JiraFinalApp201.Services.Tasks
 {
@@ -16,6 +16,8 @@ namespace JiraFinalApp201.Services.Tasks
         Task<bool> DeleteTaskAsync(int id);
         Task<IEnumerable<TaskItem>> GetTasksByUserIdAsync(int userId);
         Task<TaskItem> AddTaskAsync(TaskItem task);
-
+        
+        // Search tasks by keyword (searches in CONId, Title, Description)
+        Task<IEnumerable<TaskItem>> SearchTasksAsync(string searchTerm);
     }
 }

@@ -22,6 +22,35 @@
 }
 
 <style>
+    /* Custom color variables */
+    :root {
+        --primary-color: #0d6efd;
+        --primary-light: #e6f0ff;
+        --secondary-color: #6c757d;
+        --success-color: #198754;
+        --success-light: #e8f5e9;
+        --danger-color: #dc3545;
+        --danger-light: #ffebee;
+        --warning-color: #ffc107;
+        --warning-light: #fffde7;
+        --info-color: #0dcaf0;
+        --info-light: #e0f7fa;
+        --purple-color: #6f42c1;
+        --purple-light: #f3e5f5;
+    }
+    
+    /* Card styling */
+    .card {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    /* Task header styling */
     .task-detail-container {
         max-width: 1000px;
         margin: 0 auto;
@@ -48,6 +77,81 @@
         gap: 8px;
     }
     
+    /* Badge styling */
+    .badge {
+        padding: 0.5em 0.8em;
+        font-weight: 500;
+        border-radius: 4px;
+    }
+    
+    /* Status colors */
+    .bg-primary, .text-primary {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+    
+    .bg-primary.bg-opacity-10 {
+        background-color: var(--primary-light) !important;
+        color: var(--primary-color) !important;
+    }
+    
+    .bg-success, .text-success {
+        background-color: var(--success-color) !important;
+        color: white !important;
+    }
+    
+    .bg-success.bg-opacity-10 {
+        background-color: var(--success-light) !important;
+        color: var(--success-color) !important;
+    }
+    
+    .bg-warning, .text-warning {
+        background-color: var(--warning-color) !important;
+        color: black !important;
+    }
+    
+    .bg-warning.bg-opacity-10 {
+        background-color: var(--warning-light) !important;
+        color: #856404 !important;
+    }
+    
+    .bg-danger, .text-danger {
+        background-color: var(--danger-color) !important;
+        color: white !important;
+    }
+    
+    .bg-danger.bg-opacity-10 {
+        background-color: var(--danger-light) !important;
+        color: var(--danger-color) !important;
+    }
+    
+    .bg-info, .text-info {
+        background-color: var(--info-color) !important;
+        color: white !important;
+    }
+    
+    .bg-info.bg-opacity-10 {
+        background-color: var(--info-light) !important;
+        color: #0c5460 !important;
+    }
+    
+    .bg-purple, .text-purple {
+        background-color: var(--purple-color) !important;
+        color: white !important;
+    }
+    
+    .bg-purple.bg-opacity-10 {
+        background-color: var(--purple-light) !important;
+        color: var(--purple-color) !important;
+    }
+    
+    /* Form controls */
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Task title styling */
     .task-title {
         font-size: 24px;
         font-weight: 500;
@@ -154,10 +258,17 @@
     <div class="row mb-3">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <div class="card-header @(Model.Status == TaskStatusEnum.ToDo ? "bg-primary" : Model.Status == TaskStatusEnum.InProgress ? "bg-warning" : "bg-success") text-white d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <div class="task-id me-2">
-                            <span class="text-muted"><i class="bi bi-hash"></i> @Model.CONId</span>
+                            <span class="text-white"><i class="fas fa-hashtag"></i> @(Model.CONId ?? $"TASK-{Model.Id}")</span>
+                        </div>
+                        <div class="ms-2 badge bg-white text-dark">
+                            <i class="fas @(Model.WorkType == WorkType.Bug ? "fa-bug" : Model.WorkType == WorkType.Story ? "fa-book" : "fa-tasks") me-1"></i>
+                            @Model.WorkType
+                        </div>
+                        <div class="ms-2 badge @(Model.Priority == Priority.Low ? "bg-success" : Model.Priority == Priority.Medium ? "bg-warning text-dark" : "bg-danger")">
+                            <i class="fas fa-flag me-1"></i> @Model.Priority
                         </div>
                     </div>
                 </div>
@@ -167,22 +278,32 @@
                         <div class="col-md-8">
                             <!-- Title with inline editing -->
                             <div class="editable-field mb-4" data-field="Title" data-id="@Model.Id">
-                                <div class="display-view">
-                                    <h2 class="task-title">@Model.Title</h2>
+                                <div class="display-view d-flex align-items-center">
+                                    <h2 class="task-title mb-0">@Model.Title</h2>
+                                    <button class="btn btn-sm btn-link edit-title-btn p-0 ms-2" type="button">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                 </div>
                                 <div class="edit-view" style="display:none;">
-                                    <input type="text" class="form-control mb-2" value="@Model.Title">
+                                    <input type="text" class="form-control mb-2 form-control-lg" value="@Model.Title">
                                     <div class="action-buttons">
-                                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
-                                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
+                                        <button class="btn btn-sm btn-success save-edit" type="button"><i class="fas fa-check"></i> Save</button>
+                                        <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="fas fa-times"></i> Cancel</button>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="task-metadata mb-3">
+                                <span class="badge bg-secondary me-2"><i class="fas fa-calendar-alt me-1"></i> Created: @Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                @if (Model.CompletionDate.HasValue)
+                                {
+                                    <span class="badge bg-success me-2"><i class="fas fa-calendar-check me-1"></i> Completed: @Model.CompletionDate.Value.ToString("MMM dd, yyyy")</span>
+                                }
                             </div>
                             
                             <!-- Description with inline editing -->
                             <div class="card mb-4">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">Description</h5>
+                                <div class="card-header bg-info bg-opacity-10 text-info">
+                                    <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="editable-field" data-field="Description" data-id="@Model.Id">
@@ -210,8 +331,8 @@
             
             <!-- Attachment Section -->
             <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Attachments</h5>
+                <div class="card-header bg-success bg-opacity-10 text-success">
+                    <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>Attachments</h5>
                 </div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(Model.AttachmentPath))
@@ -226,14 +347,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <i class="bi bi-paperclip me-2"></i>
-                                <a href="@Url.Content(Model.AttachmentPath)" target="_blank">@System.IO.Path.GetFileName(Model.AttachmentPath)</a>
-                            </div>
+                                </div>
                             <div>
                                 <form method="post" action="@Url.Action("RemoveAttachment", "Task")" style="display: inline;">
                                     <input type="hidden" name="taskId" value="@Model.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to remove this attachment?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    
                                 </form>
                             </div>
                         </div>
@@ -279,76 +397,88 @@
         <!-- Sidebar -->
         <div class="col-md-4">
             <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Details</h5>
+                <div class="card-header bg-primary bg-opacity-10 text-primary">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Details</h5>
                 </div>
                 <div class="card-body">
                     <!-- Status with inline editing -->
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Status</div>
-                        <div class="editable-field" data-field="Status" data-id="@Model.Id">
-                            <div class="display-view d-flex align-items-center">
-                                <div class="badge bg-secondary me-2">@Model.Status</div>
-                                <i class="bi bi-pencil-fill small text-muted"></i>
-                            </div>
-                            <div class="edit-view" style="display:none;">
-                                <select class="form-select form-select-sm mb-2">
-                                    @foreach (var status in Enum.GetValues(typeof(TaskStatusEnum)))
-                                    {
-                                        <option value="@status" @@(Model.Status == (TaskStatusEnum)status ? "selected" : "")>@status</option>
-                                    }
-                                </select>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
-                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            </div>
+                        <div class="d-flex align-items-center">
+<div class="status-display-container">
+    <div class="status-display badge @(Model.Status == TaskStatusEnum.ToDo ? "bg-primary" : Model.Status == TaskStatusEnum.InProgress ? "bg-warning" : "bg-success") d-flex align-items-center">
+        @Model.Status
+        <button class="btn btn-sm btn-link edit-status-btn p-0 ps-1" type="button" style="line-height:1;">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+</div>
+                            <select class="form-select form-select-sm auto-save-select status-select d-none" data-field="Status" data-id="@Model.Id">
+                                @foreach (var status in Enum.GetValues(typeof(TaskStatusEnum)))
+                                {
+                                    <option value="@status" @@(Model.Status == (TaskStatusEnum)status ? "selected" : "")>@status</option>
+                                }
+                            </select>
                         </div>
                     </div>
                     
                     <!-- Priority with inline editing -->
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Priority</div>
-                        <div class="editable-field" data-field="Priority" data-id="@Model.Id">
-                            <div class="display-view d-flex align-items-center">
-                                <div class="badge bg-warning text-dark me-2">@Model.Priority</div>
-                                <i class="bi bi-pencil-fill small text-muted"></i>
-                            </div>
-                            <div class="edit-view" style="display:none;">
-                                <select class="form-select form-select-sm mb-2">
-                                    @foreach (var priority in Enum.GetValues(typeof(Priority)))
-                                    {
-                                        <option value="@priority" @@(Model.Priority == (Priority)priority ? "selected" : "")>@priority</option>
-                                    }
-                                </select>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
-                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            </div>
+                        <div class="d-flex align-items-center">
+                                            <div class="priority-display-container">
+                                                <div class="priority-display @(Model.Priority == Priority.Low ? "text-success" : Model.Priority == Priority.Medium ? "text-warning" : "text-danger") d-flex align-items-center">
+                                                    <i class="fas fa-flag me-1"></i> @Model.Priority
+                                                    <button class="btn btn-sm btn-link edit-priority-btn p-0 ps-1" type="button" style="line-height:1;">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                            <select class="form-select form-select-sm auto-save-select priority-select d-none" data-field="Priority" data-id="@Model.Id">
+                                @foreach (var priority in Enum.GetValues(typeof(Priority)))
+                                {
+                                    <option value="@priority" @@(Model.Priority == (Priority)priority ? "selected" : "")>@priority</option>
+                                }
+                            </select>
                         </div>
                     </div>
-                    
-                    <!-- Work Type -->
-                    <div class="mb-3">
-                        <div class="text-muted small mb-1">Work Type</div>
-                        <div>@Model.WorkType</div>
-                    </div>
+
+                                    <!-- Work Type (display only) -->
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1">Work Type</div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="worktype-display @(Model.WorkType == WorkType.Bug ? "text-danger" : Model.WorkType == WorkType.Story ? "text-primary" : "text-secondary")">
+                                                <i class="fas @(Model.WorkType == WorkType.Bug ? "fa-bug" : Model.WorkType == WorkType.Story ? "fa-book" : "fa-tasks") me-1"></i> @Model.WorkType
+                                            </div>
+                                        </div>
+                                    </div>
                     
                     <!-- Dates -->
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Start date</div>
-                        <div>@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        <div class="d-flex align-items-center">
+                            <input type="date" class="form-control form-control-sm auto-save-date" 
+                                   data-field="CreatedAt" data-id="@Model.Id"
+                                   value="@Model.CreatedAt.ToString("yyyy-MM-dd")">
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Completion date</div>
-                        <div>@(Model.CompletionDate.HasValue ? Model.CompletionDate.Value.ToString("MMM dd, yyyy") : "None")</div>
+                        <div class="d-flex align-items-center">
+                            <input type="date" class="form-control form-control-sm auto-save-date" 
+                                   data-field="CompletionDate" data-id="@Model.Id"
+                                   value="@(Model.CompletionDate.HasValue ? Model.CompletionDate.Value.ToString("yyyy-MM-dd") : "")">
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Due date</div>
-                        <div>None</div>
+                        <div class="d-flex align-items-center">
+                            <input type="date" class="form-control form-control-sm auto-save-date" 
+                                   data-field="DueDate" data-id="@Model.Id"
+                                   value="">
+                        </div>
                     </div>
                     
                     <!-- Project -->
@@ -360,9 +490,9 @@
             </div>
             
             <!-- People -->
-            <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">People</h5>
+            <div class="card mb-4">
+                <div class="card-header bg-purple bg-opacity-10 text-purple">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>People</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -375,34 +505,30 @@
                     
                     <div class="mb-3">
                         <div class="text-muted small mb-1">Assignee</div>
-                        <div class="editable-field" data-field="AssigneeId" data-id="@Model.Id">
-                            <div class="display-view d-flex align-items-center">
-                                @if (!string.IsNullOrEmpty(ViewBag.AssigneeName))
+                        <div class="d-flex align-items-center">
+                            <div class="assignee-display-container">
+                                @if (Model.Assignee != null)
                                 {
-                                    <div class="d-flex align-items-center me-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 14px;">@ViewBag.AssigneeName.Substring(0, 1).ToUpper()</div>
-                                        <div>@ViewBag.AssigneeName</div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 14px;">@(Model.Assignee.Username?.Substring(0, 1).ToUpper() ?? "?")</div>
+                                        <div>@Model.Assignee.Username</div>
                                     </div>
                                 }
                                 else
                                 {
-                                    <div class="text-muted me-2">Unassigned</div>
+                                    <div class="text-muted">Unassigned</div>
                                 }
-                                <i class="bi bi-pencil-fill small text-muted"></i>
+                                <button class="btn btn-sm btn-link edit-assignee-btn p-0 ms-2" type="button">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                             </div>
-                            <div class="edit-view" style="display:none;">
-                                <select class="form-select form-select-sm mb-2">
-                                    <option value="">Unassigned</option>
-                                    @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
-                                    {
-                                        <option value="@user.Id" @@(Model.AssigneeId == user.Id ? "selected" : "")>@user.Username</option>
-                                    }
-                                </select>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success save-edit" type="button"><i class="bi bi-check-lg"></i></button>
-                                    <button class="btn btn-sm btn-danger cancel-edit" type="button"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            </div>
+                            <select class="form-select form-select-sm auto-save-select assignee-select d-none" data-field="AssigneeId" data-id="@Model.Id">
+                                <option value="">Unassigned</option>
+                                @foreach (var user in ViewBag.Users ?? new List<JiraFinalApp201.Models.Authentication.User>())
+                                {
+                                    <option value="@user.Id" @@(Model.AssigneeId == user.Id ? "selected" : "")>@user.Username</option>
+                                }
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -411,22 +537,33 @@
     </div>
 </div>
 
-<div class="text-center mt-4">
-    <a href="@Url.Action("Index", "Board")" class="btn btn-outline-secondary">
-        Back to Board
-    </a>
-</div>
+                <div class="mb-3">
+                    <a href="@Url.Action("Index", "Board")" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Board
+                    </a>
+                </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
             const token = $('input[name="__RequestVerificationToken"]').val();
 
-            // Make all editable fields clickable to show edit view
-            $('.editable-field .display-view').click(function () {
-                const container = $(this).closest('.editable-field');
-                container.find('.display-view').hide();
-                container.find('.edit-view').show().find('input, textarea, select').focus();
+            // Edit title button
+            $('.edit-title-btn').click(function(e) {
+                e.stopPropagation();
+                const $field = $(this).closest('.editable-field');
+                $field.find('.display-view').hide();
+                $field.find('.edit-view').show();
+                $field.find('input, textarea').focus();
+            });
+            
+            // Make description field clickable to show edit view
+            $('.editable-field .display-view').not(':has(.edit-title-btn)').click(function () {
+                $(this).closest('.editable-field').find('.edit-view').show();
+                $(this).hide();
+                
+                // Focus on the input
+                $(this).closest('.editable-field').find('input, textarea').focus();
             });
 
             // Cancel button hides edit view and shows display view
@@ -514,10 +651,37 @@
                 });
             });
 
+            // Edit buttons for status, priority, work type, and assignee
+            $('.edit-status-btn').click(function() {
+                $('.status-display-container').addClass('d-none');
+                $('.status-select').removeClass('d-none').focus();
+            });
+            
+            $('.edit-priority-btn').click(function() {
+                $('.priority-display-container').addClass('d-none');
+                $('.priority-select').removeClass('d-none').focus();
+            });
+            
+            $('.edit-worktype-btn').click(function() {
+                $('.worktype-display-container').addClass('d-none');
+                $('.worktype-select').removeClass('d-none').focus();
+            });
+            
+            $('.edit-assignee-btn').click(function() {
+                $('.assignee-display-container').addClass('d-none');
+                $('.assignee-select').removeClass('d-none').focus();
+            });
+            
+            // Auto-save for select dropdowns
             $('.auto-save-select').change(function () {
                 const field = $(this).data('field');
                 const id = $(this).data('id');
                 const value = $(this).val();
+                const $select = $(this);
+                
+                // Show a small loading indicator
+                const originalBg = $(this).css('background-color');
+                $(this).css('background-color', '#e9f5ff');
 
                 $.ajax({
                     url: '/Task/UpdateField',
@@ -525,13 +689,116 @@
                     headers: { 'RequestVerificationToken': token },
                     data: { id, field, value },
                     success: function (response) {
-                        if (!response.success) {
-                            alert('Failed to update: ' + response.message);
+                        if (response.success) {
+                            // Success - briefly highlight with a success color
+                            $select.css('background-color', '#d4edda');
+                            setTimeout(() => {
+                                $select.css('background-color', originalBg);
+                                
+                                // Hide select and show display with updated value
+                                if (field === 'Status') {
+                                    const statusText = $select.find('option:selected').text();
+                                    const statusClass = statusText === 'ToDo' ? 'bg-primary' : 
+                                                      statusText === 'InProgress' ? 'bg-warning' : 'bg-success';
+                                    $('.status-display').text(statusText).removeClass('bg-primary bg-warning bg-success').addClass(statusClass);
+                                    $('.status-select').addClass('d-none');
+                                    $('.status-display-container').removeClass('d-none');
+                                } else if (field === 'Priority') {
+                                    const priorityText = $select.find('option:selected').text();
+                                    const priorityClass = priorityText === 'Low' ? 'text-success' : 
+                                                       priorityText === 'Medium' ? 'text-warning' : 'text-danger';
+                                    $('.priority-display').html('<i class="fas fa-flag me-1"></i> ' + priorityText)
+                                                         .removeClass('text-success text-warning text-danger')
+                                                         .addClass(priorityClass);
+                                    $('.priority-select').addClass('d-none');
+                                    $('.priority-display-container').removeClass('d-none');
+                                } else if (field === 'AssigneeId') {
+                                    // For assignee, we'll reload the page to get the updated user info
+                                    location.reload();
+                                }
+                            }, 1000);
+                        } else {
+                            // Error - highlight with error color
+                            $select.css('background-color', '#f8d7da');
+                            setTimeout(() => {
+                                $select.css('background-color', originalBg);
+                            }, 1000);
+                            console.error('Error:', response.message);
                         }
                     },
                     error: function () {
-                        alert('An error occurred while updating the field.');
+                        // Error - highlight with error color
+                        $select.css('background-color', '#f8d7da');
+                        setTimeout(() => {
+                            $select.css('background-color', originalBg);
+                        }, 1000);
+                        console.error('An error occurred while updating the field.');
                     }
+                });
+            });
+            
+            // Handle clicking outside of select dropdowns
+            $(document).click(function(e) {
+                if (!$(e.target).closest('.status-select, .edit-status-btn').length) {
+                    $('.status-select').addClass('d-none');
+                    $('.status-display-container').removeClass('d-none');
+                }
+                
+                if (!$(e.target).closest('.priority-select, .edit-priority-btn').length) {
+                    $('.priority-select').addClass('d-none');
+                    $('.priority-display-container').removeClass('d-none');
+                }
+                
+                if (!$(e.target).closest('.worktype-select, .edit-worktype-btn').length) {
+                    $('.worktype-select').addClass('d-none');
+                    $('.worktype-display-container').removeClass('d-none');
+                }
+                
+                if (!$(e.target).closest('.assignee-select, .edit-assignee-btn').length) {
+                    $('.assignee-select').addClass('d-none');
+                    $('.assignee-display-container').removeClass('d-none');
+                }
+            });
+            
+            // Auto-save for date fields
+            $('.auto-save-date').change(function () {
+                const field = $(this).data('field');
+                const id = $(this).data('id');
+                const value = $(this).val(); // Format: YYYY-MM-DD
+                
+                // Show a small loading indicator
+                const originalBg = $(this).css('background-color');
+                $(this).css('background-color', '#e9f5ff');
+
+                $.ajax({
+                    url: '/Task/UpdateField',
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token },
+                    data: { id, field, value },
+                    success: function (response) {
+                        if (response.success) {
+                            // Success - briefly highlight with a success color
+                            $(this).css('background-color', '#d4edda');
+                            setTimeout(() => {
+                                $(this).css('background-color', originalBg);
+                            }, 1000);
+                        } else {
+                            // Error - highlight with error color
+                            $(this).css('background-color', '#f8d7da');
+                            setTimeout(() => {
+                                $(this).css('background-color', originalBg);
+                            }, 1000);
+                            console.error('Error:', response.message);
+                        }
+                    }.bind(this),
+                    error: function () {
+                        // Error - highlight with error color
+                        $(this).css('background-color', '#f8d7da');
+                        setTimeout(() => {
+                            $(this).css('background-color', originalBg);
+                        }, 1000);
+                        console.error('An error occurred while updating the field.');
+                    }.bind(this)
                 });
             });
 
