@@ -45,7 +45,7 @@ namespace JiraFinalApp201.Services.Tasks
 
             public async Task<TaskItem> CreateTaskAsync(TaskItem task)
             {
-                // Always generate CONId if null or empty
+                // Auto-generate task ID if not provided
                 if (string.IsNullOrWhiteSpace(task.CONId))
                 {
                     task.CONId = await GenerateConIdForTaskAsync(task.ProjectId);
@@ -116,27 +116,27 @@ namespace JiraFinalApp201.Services.Tasks
 
             public async Task<TaskItem> AddTaskAsync(TaskItem task)
             {
-                // This is an alias for CreateTaskAsync
+                // Wrapper for CreateTaskAsync for backward compatibility
                 return await CreateTaskAsync(task);
             }
  
             private async Task<string> GenerateConIdForTaskAsync(int projectId)
             {
-                // Get project name for prefix or use default
+                // Default prefix if no project found
                 string prefix = "TASK";
                 var project = await _context.Projects.FindAsync(projectId);
                 if (project != null && !string.IsNullOrEmpty(project.Name))
                 {
-                    // Use first 3-4 characters of project name as prefix
+                    // Take first few chars of project name for the prefix
                     prefix = project.Name.Length <= 4 ? 
                              project.Name.ToUpper() : 
                              project.Name.Substring(0, 4).ToUpper();
                 }
                 
-                // Count existing tasks for this project to generate sequential number
+                // Get next number in sequence for this project
                 int taskCount = await _context.Tasks.CountAsync(t => t.ProjectId == projectId);
                 
-                // Format: PREFIX-123 (e.g., PROJ-123)
+                // Create ID in format: PROJ-123
                 return $"{prefix}-{taskCount + 1}";
             }
             
@@ -144,7 +144,7 @@ namespace JiraFinalApp201.Services.Tasks
             {
                 if (string.IsNullOrWhiteSpace(searchTerm))
                     return new List<TaskItem>();
-                    
+                
                 searchTerm = searchTerm.ToLower().Trim();
                 
                 return await _context.Tasks
@@ -159,10 +159,9 @@ namespace JiraFinalApp201.Services.Tasks
                         (t.Reporter != null && t.Reporter.Username != null && t.Reporter.Username.ToLower().Contains(searchTerm))
                     )
                     .OrderByDescending(t => t.CreatedAt)
-                    .Take(10) // Limit to 10 results
+                    .Take(10) // Cap results to avoid performance issues
                     .ToListAsync();
             }
         }
 
 }
-

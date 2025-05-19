@@ -7,7 +7,7 @@ namespace JiraFinalApp201.Models.Tasks
 {
     public class Taskitems
     {
-        // Enum for task statuses
+        // Task workflow states
         public enum TaskStatusEnum
         {
             ToDo,
@@ -15,7 +15,7 @@ namespace JiraFinalApp201.Models.Tasks
             Done
         }
 
-        // Enum for work types
+        // Types of work items
         public enum WorkType
         {
             Story,
@@ -23,7 +23,7 @@ namespace JiraFinalApp201.Models.Tasks
             Task
         }
 
-        // Enum for priority levels
+        // Task importance levels
         public enum Priority
         {
             Low,
@@ -31,7 +31,7 @@ namespace JiraFinalApp201.Models.Tasks
             High
         }
 
-        // Nested TaskItem class
+        // Core task entity
         public class TaskItem
         {
             public int Id { get; set; }
@@ -57,7 +57,7 @@ namespace JiraFinalApp201.Models.Tasks
 
             public string? AttachmentPath { get; set; }
 
-            // Foreign keys and navigation properties
+            // Relationships
             public int ProjectId { get; set; }
             public virtual Project Project { get; set; }
 
@@ -67,7 +67,7 @@ namespace JiraFinalApp201.Models.Tasks
             public int? AssigneeId { get; set; }
             public virtual User Assignee { get; set; }
 
-            // Constructor to initialize default values
+            // Sets sensible defaults for new tasks
             public TaskItem()
             {
                 Title = "";

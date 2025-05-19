@@ -18,26 +18,28 @@ namespace JiraFinalApp201.Models.Database
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure relationships
+            // Prevent deletion of users who reported tasks
             modelBuilder.Entity<TaskItem>()
                 .HasOne(t => t.Reporter)
                 .WithMany( u => u.ReportedTasks)
                 .HasForeignKey(t => t.ReporterId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Prevent deletion of users assigned to tasks
             modelBuilder.Entity<TaskItem>()
                 .HasOne(t => t.Assignee)
                 .WithMany(u => u.AssignedTasks)
                 .HasForeignKey(t => t.AssigneeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Delete tasks when their project is deleted
             modelBuilder.Entity<TaskItem>()
                 .HasOne(t => t.Project)
                 .WithMany(p => p.Tasks)
                 .HasForeignKey(t => t.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure CONId for TaskItem
+            // Task ID format constraints
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.CONId)
                 .IsRequired()

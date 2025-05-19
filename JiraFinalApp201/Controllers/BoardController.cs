@@ -13,7 +13,7 @@ using JiraFinalApp201.ViewModels;
 
 namespace JiraFinalApp201.Controllers
 {
-    // View models defined directly in the controller file
+    // View models for board-related views
     namespace JiraFinalApp201.ViewModels
     {
         public class TaskViewModel
@@ -85,30 +85,30 @@ namespace JiraFinalApp201.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
                 
-            // Load all users
+            // Get users for assignment dropdown
             var users = await _userService.GetAllUsersAsync();
             
-            // Load all projects
+            // Get projects for filtering
             var projects = await _projectService.GetAllProjectsAsync();
             ViewBag.Projects = projects;
             
-            // Load ALL tasks for dashboard counts - this is critical for accurate counts
+            // Fetch all tasks for the board view
             var allTasks = await _taskService.GetAllTasksAsync();
             var allMappedTasks = _mapper.Map<List<TaskViewModel>>(allTasks);
             
-            // Create the view model with all tasks for proper counts
+            // Build the board view model
             var model = new BoardViewModel
             {
                 Tasks = allMappedTasks,
                 UserTasksViewModel = new UserTasksViewModel
                 {
                     Users = users,
-                    Tasks = allMappedTasks, // Use all tasks here too for consistency
+                    Tasks = allMappedTasks,
                     Projects = projects
                 }
             };
             
-            // Set ViewBag variables for task creation success message
+            // Pass notification data from task creation
             ViewBag.TaskCreated = TempData["TaskCreated"];
             ViewBag.TaskTitle = TempData["TaskTitle"];
 

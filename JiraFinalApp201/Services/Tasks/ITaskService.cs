@@ -6,7 +6,8 @@ namespace JiraFinalApp201.Services.Tasks
     {
         Task<IEnumerable<TaskItem>> GetAllTasksAsync();
         Task<TaskItem?> GetTaskByIdAsync(int id);
-        Task<TaskItem?> GetTaskByConIdAsync(string conId); //   CON-Id
+        // Retrieve task by its unique CON-Id (e.g., PROJ-123)
+        Task<TaskItem?> GetTaskByConIdAsync(string conId);
         Task<IEnumerable<TaskItem>> GetTasksByProjectIdAsync(int projectId);
         Task<IEnumerable<TaskItem>> GetTasksByAssigneeIdAsync(int assigneeId);
         Task<IEnumerable<TaskItem>> GetTasksByReporterIdAsync(int reporterId);
@@ -17,7 +18,7 @@ namespace JiraFinalApp201.Services.Tasks
         Task<IEnumerable<TaskItem>> GetTasksByUserIdAsync(int userId);
         Task<TaskItem> AddTaskAsync(TaskItem task);
         
-        // Search tasks by keyword (searches in CONId, Title, Description)
+        // Find tasks matching the search term in any relevant field
         Task<IEnumerable<TaskItem>> SearchTasksAsync(string searchTerm);
     }
 }
