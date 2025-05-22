@@ -1,6 +1,5 @@
 using JiraFinalApp201.Models.Database;
 using JiraFinalApp201.Models.Authentication;
-using JiraFinalApp201.Models.Database;
 using JiraFinalApp201.Models.Tasks;
 
 using JiraFinalApp201.Services.User;
@@ -34,7 +33,7 @@ namespace JiraFinalApp201.Controllers
 
                 return View();
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                  
                 TempData["ErrorMessage"] = "Database connection error. Please check your connection string and ensure SQL Server is running.";
@@ -68,7 +67,7 @@ namespace JiraFinalApp201.Controllers
                 ModelState.AddModelError("", "Invalid username or password");
                 return View();
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                
                 ModelState.AddModelError("", "An error occurred during login. Please check your database connection.");
@@ -83,7 +82,7 @@ namespace JiraFinalApp201.Controllers
             {
                 return View(new User());
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 TempData["ErrorMessage"] = "Database connection error. Please check your connection string and ensure SQL Server is running.";
                 return RedirectToAction("Error", "Home");
@@ -155,7 +154,7 @@ namespace JiraFinalApp201.Controllers
 
                 return RedirectToAction("Login");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
              
                 return RedirectToAction("Login");
