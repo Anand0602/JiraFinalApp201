@@ -42,6 +42,9 @@ namespace JiraFinalApp201.Models.Tasks
 
             public string Description { get; set; }
 
+            [Range(0, 1000, ErrorMessage = "Story Points must be between 0 and 1000.")]
+            public int? StoryPoints { get; set; }
+
             public TaskStatusEnum Status { get; set; }
 
             public WorkType WorkType { get; set; }

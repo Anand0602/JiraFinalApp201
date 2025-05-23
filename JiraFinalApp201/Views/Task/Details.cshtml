@@ -421,6 +421,33 @@
                             </select>
                         </div>
                     </div>
+
+<!-- Story Points with inline editing (label + dropdown) -->
+<div class="mb-3">
+    <div class="text-muted small mb-1">Story Points</div>
+    <div class="d-flex align-items-center">
+        <div class="storypoints-display-container">
+            <div class="storypoints-display badge bg-info d-flex align-items-center">
+                <i class="bi bi-graph-up-arrow me-1"></i> @(Model.StoryPoints?.ToString() ?? "—")
+                <button class="btn btn-sm btn-link edit-storypoints-btn p-0 ps-1" type="button" style="line-height:1;">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+        <select class="form-select form-select-sm auto-save-select storypoints-select d-none ms-2"
+                data-field="StoryPoints" data-id="@Model.Id" style="width: 90px;">
+            <option value="">—</option>
+            @for (int i = 0; i <= 100; i++)
+            {
+                <option value="@i" @@(Model.StoryPoints == i ? "selected" : "")>@i</option>
+            }
+        </select>
+    </div>
+</div>
+
+
+
+
                     
                     <!-- Priority with inline editing -->
                     <div class="mb-3">
@@ -651,7 +678,7 @@
                 });
             });
 
-            // Edit buttons for status, priority, work type, and assignee
+            // Edit buttons for status, priority, work type, and assignee,storypoints
             $('.edit-status-btn').click(function() {
                 $('.status-display-container').addClass('d-none');
                 $('.status-select').removeClass('d-none').focus();
@@ -671,6 +698,17 @@
                 $('.assignee-display-container').addClass('d-none');
                 $('.assignee-select').removeClass('d-none').focus();
             });
+                                    $('.edit-storypoints-btn').click(function() {
+                            $('.storypoints-display-container').addClass('d-none');
+                            $('.storypoints-select').removeClass('d-none').focus();
+                        });
+                        $(document).click(function(e) {
+                            if (!$(e.target).closest('.storypoints-select, .edit-storypoints-btn').length) {
+                                $('.storypoints-select').addClass('d-none');
+                                $('.storypoints-display-container').removeClass('d-none');
+                            }
+                        });
+
             
             // Auto-save for select dropdowns
             $('.auto-save-select').change(function () {
@@ -712,7 +750,14 @@
                                                          .addClass(priorityClass);
                                     $('.priority-select').addClass('d-none');
                                     $('.priority-display-container').removeClass('d-none');
-                                } else if (field === 'AssigneeId') {
+                                }
+                                                else if (field === 'StoryPoints') {
+                                        const spText = value === "" ? "—" : value;
+                                        $('.storypoints-display').html('<i class="bi bi-graph-up-arrow me-1"></i> ' + spText);
+                                        $('.storypoints-select').addClass('d-none');
+                                        $('.storypoints-display-container').removeClass('d-none');
+                                    }
+                                                else if (field === 'AssigneeId') {
                                     // For assignee, we'll reload the page to get the updated user info
                                     location.reload();
                                 }
@@ -736,6 +781,8 @@
                     }
                 });
             });
+            
+
             
             // Handle clicking outside of select dropdowns
             $(document).click(function(e) {

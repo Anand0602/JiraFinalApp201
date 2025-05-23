@@ -85,6 +85,13 @@
                 </div>
 
                 <div class="mb-3">
+                    <label asp-for="StoryPoints" class="form-label fw-bold">Story Points</label>
+                    <input asp-for="StoryPoints" class="form-control" type="number" min="0" max="1000" />
+                    <span asp-validation-for="StoryPoints" class="text-danger"></span>
+                </div>
+
+
+                <div class="mb-3">
                     <label for="Attachment" class="form-label fw-bold">Image Attachment</label>
                     <input type="file" name="Attachment" id="Attachment" class="form-control" accept="image/*" />
                     <div class="form-text">Upload an image file (jpg, jpeg, png, gif only)</div>

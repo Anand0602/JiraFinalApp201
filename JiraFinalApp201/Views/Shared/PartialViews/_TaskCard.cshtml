@@ -15,6 +15,15 @@
                                                  "bg-success")" style="width: 8px; height: 8px; padding: 0;"></span>
         </div>
 
+        @if (Model.StoryPoints.HasValue)
+        {
+            <div class="mb-1">
+                <span class="badge bg-info text-white" title="Story Points">
+                    <i class="bi bi-graph-up-arrow me-1"></i> @Model.StoryPoints
+                </span>
+            </div>
+        }
+
         <!-- Assignee Info -->
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">@Model.WorkType</small>

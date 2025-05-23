@@ -431,6 +431,11 @@
                 <a asp-controller="Calendar" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Calendar" ? "active" : "")">
                     <i class="far fa-calendar"></i> Calendar
                 </a>
+                <a asp-controller="Board" asp-action="ExportUserReport" asp-route-userId="@Model.Id" class="btn btn-info">
+                    <i class="fas fa-file-pdf"></i> Export Report (PDF)
+                </a>
+
+              
 
                 <div class="sidebar-section">
                     <div class="sidebar-section-header">

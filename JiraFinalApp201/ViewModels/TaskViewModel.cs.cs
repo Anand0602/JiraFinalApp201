@@ -11,6 +11,8 @@ namespace JiraFinalApp201.ViewModels
         public int Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public int? StoryPoints { get; set; }
+
         public TaskStatusEnum Status { get; set; }
         public WorkType WorkType { get; set; }
         public Priority Priority { get; set; }

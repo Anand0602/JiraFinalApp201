@@ -439,6 +439,12 @@ namespace JiraFinalApp201.Controllers
                         else if (int.TryParse(value, out var assigneeId))
                             task.AssigneeId = assigneeId;
                         break;
+                    case "StoryPoints":
+                        if (string.IsNullOrEmpty(value))
+                            task.StoryPoints = null;
+                        else if (int.TryParse(value, out var storyPoints))
+                            task.StoryPoints = storyPoints;
+                        break;
                     default:
                         return Json(new { success = false, message = "Invalid field" });
                 }
